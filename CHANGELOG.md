@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.7
+
+### Patch Changes
+
+- 2012e56: Correction du chemin de recherche de l'application pour la vérification de signature
+
 ## 0.1.6
 
 ### Patch Changes
