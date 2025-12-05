@@ -8,9 +8,9 @@
  * Ce script utilise hdiutil (outil natif macOS) pour créer un DMG.
  */
 
+import { basename, dirname } from 'node:path';
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
 
-import { dirname } from 'node:path';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
@@ -32,8 +32,9 @@ function createDMG(appPath, dmgPath, appName) {
   }
   mkdirSync(dmgVolume, { recursive: true });
   
-  // Copier l'application dans le volume
-  execSync(`cp -R "${appPath}" "${dmgVolume}/"`, { stdio: 'inherit' });
+  // Copier l'application dans le volume en préservant la signature
+  // Utiliser ditto au lieu de cp pour préserver les attributs étendus et la signature
+  execSync(`ditto "${appPath}" "${dmgVolume}/${basename(appPath)}"`, { stdio: 'inherit' });
   
   // Créer un lien symbolique vers Applications
   execSync(`ln -s /Applications "${dmgVolume}/Applications"`, { stdio: 'inherit' });
