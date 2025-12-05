@@ -1,5 +1,12 @@
 # ecoindex-app
 
+## 0.1.5
+
+### Patch Changes
+
+- ccaca4e: Correction du script create-dmg.js pour préserver la signature macOS lors de la copie
+- 529de72: Réorganisation de l'ordre des imports dans create-dmg.js
+
 ## 0.1.4
 
 ### Patch Changes
