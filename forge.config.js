@@ -13,8 +13,9 @@ import { config as loadEnv } from 'dotenv';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 
-// Charger les variables d'environnement depuis .env
-loadEnv();
+// Charger les variables d'environnement depuis .env (seulement si le fichier existe)
+// Ne pas écraser les variables d'environnement déjà définies (comme dans GitHub Actions)
+loadEnv({ override: false });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(readFileSync(path.join(__dirname, 'package.json'), 'utf-8'));
@@ -23,6 +24,7 @@ const { version } = packageJson;
 // Vérifier si les variables de signature sont définies
 const hasSigningConfig = 
   process.env.APPLE_IDENTITY && 
+  typeof process.env.APPLE_IDENTITY === 'string' &&
   process.env.APPLE_IDENTITY.trim() !== '' &&
   process.env.APPLE_IDENTITY.includes('Developer ID');
 
@@ -30,9 +32,16 @@ const hasSigningConfig =
 if (process.platform === 'darwin') {
   console.log('🔍 Configuration de signature macOS:');
   console.log('  hasSigningConfig:', hasSigningConfig);
-  console.log('  APPLE_IDENTITY:', process.env.APPLE_IDENTITY ? `${process.env.APPLE_IDENTITY.substring(0, 30)}...` : 'non défini');
+  console.log('  APPLE_IDENTITY type:', typeof process.env.APPLE_IDENTITY);
+  console.log('  APPLE_IDENTITY value:', process.env.APPLE_IDENTITY ? `${process.env.APPLE_IDENTITY.substring(0, 50)}...` : 'non défini');
+  console.log('  APPLE_IDENTITY includes "Developer ID":', process.env.APPLE_IDENTITY ? process.env.APPLE_IDENTITY.includes('Developer ID') : false);
   console.log('  APPLE_ID:', process.env.APPLE_ID ? `${process.env.APPLE_ID.substring(0, 10)}...` : 'non défini');
   console.log('  APPLE_TEAM_ID:', process.env.APPLE_TEAM_ID || 'non défini');
+  
+  if (!hasSigningConfig) {
+    console.log('❌ ERREUR: La configuration de signature n\'est pas activée');
+    console.log('   Vérifiez que APPLE_IDENTITY contient "Developer ID"');
+  }
 }
 
 const config = {
