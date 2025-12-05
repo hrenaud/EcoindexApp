@@ -2,7 +2,7 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
 import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
-import { MakerDMG } from '@electron-forge/maker-dmg';
+// import { MakerDMG } from '@electron-forge/maker-dmg'; // Désactivé temporairement
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerRpm } from '@electron-forge/maker-rpm';
 import { MakerSquirrel } from '@electron-forge/maker-squirrel';

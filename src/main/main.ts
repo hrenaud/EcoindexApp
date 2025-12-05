@@ -11,7 +11,7 @@ try {
   if (require('electron-squirrel-startup')) {
     app.quit();
   }
-} catch (error) {
+} catch {
   // Le module n'est pas disponible, continuer normalement
   // C'est normal sur macOS/Linux où ce module n'est pas nécessaire
 }
@@ -69,8 +69,6 @@ if (!app.requestSingleInstanceLock()) {
 let win: BrowserWindow | null = null;
 // Here, you can also use other preload
 const preload = path.join(__dirname, 'preload.js');
-// 🚧 Use ['ENV_NAME'] avoid vite:define plugin - vite:define plugin will transform it during build
-const url = VITE_DEV_SERVER_URL;
 
 async function createWindow() {
   win = new BrowserWindow({
