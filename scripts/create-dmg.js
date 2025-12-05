@@ -8,9 +8,9 @@
  * Ce script utilise hdiutil (outil natif macOS) pour créer un DMG.
  */
 
+import { basename, dirname } from 'node:path';
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
 
-import { dirname, basename } from 'node:path';
 import { execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
