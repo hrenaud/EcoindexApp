@@ -10,6 +10,8 @@ on:
   push:
     branches:
       - main
+    # Ne se déclenche que si le commit contient "chore: version packages"
+    # Cela évite de builder à chaque merge, seulement après la PR de version
   workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
@@ -38,16 +40,18 @@ jobs:
         id: check
         run: |
           # Vérifier si le dernier commit contient "chore: version packages" (créé par changeset)
+          # Ce commit est créé par le workflow changeset.yml après le merge de la PR de version
           LAST_COMMIT=$(git log -1 --pretty=%B)
           if echo "$LAST_COMMIT" | grep -q "chore: version packages"; then
             VERSION=$(node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); console.log(pkg.version);")
             echo "should-release=true" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "Version détectée: $VERSION"
+            echo "✅ Version détectée: $VERSION - Le build va être déclenché"
           else
             echo "should-release=false" >> $GITHUB_OUTPUT
             echo "version=" >> $GITHUB_OUTPUT
-            echo "Pas de version à publier (commit: $LAST_COMMIT)"
+            echo "⏭️  Pas de version à publier (commit: $LAST_COMMIT)"
+            echo "⏭️  Le workflow changeset.yml doit d'abord créer et merger une PR de version"
           fi
 
   build:
