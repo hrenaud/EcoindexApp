@@ -148,7 +148,21 @@ jobs:
             exit 1
           fi
           echo "✅ Configuration de signature macOS complète"
-          echo "APPLE_IDENTITY: ${APPLE_IDENTITY:0:20}..."
+          echo "APPLE_IDENTITY complet: $APPLE_IDENTITY"
+          echo "APPLE_TEAM_ID: $APPLE_TEAM_ID"
+          
+          # Vérifier que le certificat correspond exactement
+          echo "Recherche du certificat correspondant..."
+          CERT_FOUND=$(security find-identity -v -p codesigning | grep "$APPLE_IDENTITY" || echo "")
+          if [ -z "$CERT_FOUND" ]; then
+            echo "⚠️  ATTENTION: Le certificat '$APPLE_IDENTITY' n'a pas été trouvé exactement"
+            echo "Certificats disponibles:"
+            security find-identity -v -p codesigning | grep "Developer ID"
+            echo ""
+            echo "Vérifiez que APPLE_IDENTITY correspond EXACTEMENT au nom du certificat ci-dessus"
+          else
+            echo "✅ Certificat trouvé: $CERT_FOUND"
+          fi
         env:
           APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
