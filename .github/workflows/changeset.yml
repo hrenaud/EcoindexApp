@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,6 +44,7 @@ jobs:
           version: npm run version-packages
           commit: 'chore: version packages'
           title: 'chore: version packages'
+          create: always
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
