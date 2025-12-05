@@ -20,12 +20,29 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Check if this is a version commit
+        id: check-version
+        run: |
+          # Ne pas exécuter le workflow si le commit est "chore: version packages"
+          # (créé par ce même workflow lors d'un précédent run)
+          LAST_COMMIT=$(git log -1 --pretty=%B)
+          if echo "$LAST_COMMIT" | grep -q "chore: version packages"; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️  Ce commit est une version créée par changeset, on skip ce workflow"
+            exit 0
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "✅ Ce n'est pas un commit de version, on continue"
+          fi
+
       - name: Setup Node.js
+        if: steps.check-version.outputs.skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
       - name: Setup npm cache
+        if: steps.check-version.outputs.skip != 'true'
         uses: actions/cache@v3
         with:
           path: ~/.npm
@@ -34,9 +51,11 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: Install dependencies
+        if: steps.check-version.outputs.skip != 'true'
         run: npm ci
 
       - name: Create Release Pull Request
+        if: steps.check-version.outputs.skip != 'true'
         id: changesets
         uses: changesets/action@v1
         with:
