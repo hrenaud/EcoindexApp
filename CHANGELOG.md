@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.12
+
+### Patch Changes
+
+- 8921895: Correction des builds Windows et macOS Intel : conditionnement des variables d'environnement macOS et amélioration de la vérification de signature
+
 ## 0.1.11
 
 ### Patch Changes
