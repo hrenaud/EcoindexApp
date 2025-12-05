@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.13
+
+### Patch Changes
+
+- f081ddd: Correction de la syntaxe des variables d'environnement conditionnelles dans GitHub Actions
+
 ## 0.1.12
 
 ### Patch Changes
