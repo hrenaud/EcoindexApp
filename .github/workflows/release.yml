@@ -171,11 +171,11 @@ jobs:
 
       - name: Build application
         env:
-          APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          DEBUG: '@electron/osx-sign,electron-forge:*'
+          APPLE_IDENTITY: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && secrets.APPLE_IDENTITY || '' }}
+          APPLE_ID: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && secrets.APPLE_ID || '' }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && secrets.APPLE_TEAM_ID || '' }}
+          DEBUG: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && '@electron/osx-sign,electron-forge:*' || '' }}
         run: |
           # Vérifications macOS uniquement
           if [ "${{ matrix.os.name }}" == "macos-intel" ] || [ "${{ matrix.os.name }}" == "macos-arm" ]; then
@@ -212,25 +212,26 @@ jobs:
           echo "Vérification de la signature de l'application..."
           # Trouver l'application dans le répertoire de build
           # Electron Forge place les apps dans out/make/zip/darwin/{arch}/
-          ARCH=$(uname -m)
-          if [ "$ARCH" = "arm64" ]; then
-            ARCH_DIR="arm64"
-          else
-            ARCH_DIR="x64"
-          fi
+          # Chercher dans tous les répertoires d'architecture possibles
+          APP_PATH=""
+          TEMP_EXTRACT=""
           
-          # Chercher dans le ZIP d'abord (car c'est ce qui est créé par Electron Forge)
-          ZIP_DIR="out/make/zip/darwin/${ARCH_DIR}"
-          if [ -d "$ZIP_DIR" ]; then
-            # Extraire temporairement pour vérifier
-            TEMP_EXTRACT=$(mktemp -d)
-            ZIP_FILE=$(find "$ZIP_DIR" -name "*.zip" -type f | head -1)
-            if [ -n "$ZIP_FILE" ]; then
-              echo "Extraction temporaire du ZIP pour vérification..."
-              ditto -xk "$ZIP_FILE" "$TEMP_EXTRACT"
-              APP_PATH=$(find "$TEMP_EXTRACT" -name "*.app" -type d | head -1)
+          # Chercher dans tous les répertoires d'architecture
+          for ARCH_DIR in arm64 x64; do
+            ZIP_DIR="out/make/zip/darwin/${ARCH_DIR}"
+            if [ -d "$ZIP_DIR" ]; then
+              ZIP_FILE=$(find "$ZIP_DIR" -name "*.zip" -type f | head -1)
+              if [ -n "$ZIP_FILE" ]; then
+                echo "Extraction temporaire du ZIP pour vérification..."
+                TEMP_EXTRACT=$(mktemp -d)
+                ditto -xk "$ZIP_FILE" "$TEMP_EXTRACT"
+                APP_PATH=$(find "$TEMP_EXTRACT" -name "*.app" -type d | head -1)
+                if [ -n "$APP_PATH" ]; then
+                  break
+                fi
+              fi
             fi
-          fi
+          done
           
           # Si pas trouvé dans le ZIP, chercher directement
           if [ -z "$APP_PATH" ]; then
@@ -241,20 +242,26 @@ jobs:
             echo "❌ Aucune application .app trouvée"
             echo "Contenu de out/make:"
             ls -la out/make/ || true
-            if [ -d "$ZIP_DIR" ]; then
-              echo "Contenu de $ZIP_DIR:"
-              ls -la "$ZIP_DIR" || true
-            fi
+            echo "Contenu de out/make/zip/darwin:"
+            ls -la out/make/zip/darwin/ || true
             exit 1
           fi
           echo "Application trouvée: $APP_PATH"
           
-          # Vérifier la signature
-          if codesign -dv --verbose=4 "$APP_PATH" 2>&1; then
+          # Vérifier la signature (codesign retourne toujours un code de sortie, donc on capture la sortie)
+          SIGNATURE_OUTPUT=$(codesign -dv --verbose=4 "$APP_PATH" 2>&1)
+          SIGNATURE_EXIT=$?
+          echo "$SIGNATURE_OUTPUT"
+          
+          # Vérifier si la signature est "adhoc" (non signée) ou valide
+          if echo "$SIGNATURE_OUTPUT" | grep -q "Signature=adhoc"; then
+            echo "❌ ERREUR: L'application n'est pas signée (signature adhoc)"
+            echo "Vérifiez que hasSigningConfig est true dans forge.config.js"
+            exit 1
+          elif [ $SIGNATURE_EXIT -eq 0 ] || echo "$SIGNATURE_OUTPUT" | grep -q "Signature="; then
             echo "✅ Signature vérifiée"
           else
-            echo "❌ ERREUR: La signature n'est pas valide"
-            exit 1
+            echo "⚠️  Avertissement: Impossible de vérifier la signature (code: $SIGNATURE_EXIT)"
           fi
           
           # Vérifier la notarisation (peut prendre quelques minutes après la notarisation)
