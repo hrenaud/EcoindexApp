@@ -32,7 +32,9 @@ out
 *.AppImage
 
 # Changeset
-.changeset/*.md
+# Les changesets doivent être commités pour que le workflow fonctionne
+# On ignore seulement les fichiers temporaires ou de travail si nécessaire
+# .changeset/*.md
 !.changeset/config.json
 
 # Environment variables
