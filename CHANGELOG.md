@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.14
+
+### Patch Changes
+
+- 18fb861: Amélioration des logs de debug pour comprendre pourquoi la signature est adhoc
+
 ## 0.1.13
 
 ### Patch Changes
