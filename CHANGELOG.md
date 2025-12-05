@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.3
+
+### Patch Changes
+
+- 25cc9fc: Correction du workflow changeset pour éviter qu'il s'exécute sur les commits de version
+
 ## 0.1.2
 
 ### Patch Changes
