@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.9
+
+### Patch Changes
+
+- fe63d57: Amélioration de la vérification du certificat et ajout de logs pour diagnostiquer le problème de signature
+
 ## 0.1.8
 
 ### Patch Changes
