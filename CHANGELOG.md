@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.10
+
+### Patch Changes
+
+- bcf95b8: Correction de la détection de la configuration de signature et amélioration des logs de debug
+
 ## 0.1.9
 
 ### Patch Changes
