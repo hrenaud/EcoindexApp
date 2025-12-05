@@ -1,7 +1,7 @@
 {
   "name": "ecoindex-app",
   "productName": "EcoindexApp",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "An application to measures the ecological impact of a website with LightHouse and Ecoindex.",
   "main": ".vite/build/main.js",
   "type": "module",

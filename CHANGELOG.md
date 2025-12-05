@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.15
+
+### Patch Changes
+
+- 20346d7: Correction du build Windows en spécifiant explicitement bash comme shell
+
 ## 0.1.14
 
 ### Patch Changes
