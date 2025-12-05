@@ -97,22 +97,14 @@ To sign the macOS application:
 **Note:** 
 - The `.env` file is ignored by git for security reasons
 - Windows and Linux builds are not signed
-- If you don't fill in the credentials, the app will build but won't be signed/notarized
-
-#### Opening unsigned applications on macOS
-
-If you download an unsigned application from GitHub, macOS may show an error saying the app is "damaged" or "cannot be opened". This is a security feature. To open it:
-
-1. **Right-click (or Control+click) on the application** in Finder
-2. Select **"Open"** from the context menu
-3. Click **"Open"** in the security dialog
-
-Alternatively, you can remove the quarantine attribute using Terminal:
-```bash
-xattr -d com.apple.quarantine /path/to/EcoindexApp.app
-```
-
-**Note:** For production releases, the application should be properly signed and notarized using the credentials above.
+- **IMPORTANT:** For GitHub Actions releases, all signing secrets must be configured in the repository settings:
+  - `APPLE_IDENTITY`: Developer ID Application certificate name
+  - `APPLE_ID`: Apple ID email
+  - `APPLE_APP_SPECIFIC_PASSWORD`: App-specific password
+  - `APPLE_TEAM_ID`: Apple Developer Team ID
+  - `APPLE_APPLICATION_CERT`: Base64-encoded .p12 certificate
+  - `APPLE_APPLICATION_CERT_PASSWORD`: Certificate password
+- The build will **fail** if signing credentials are not properly configured
 
 ## Version Management with Changeset
 
