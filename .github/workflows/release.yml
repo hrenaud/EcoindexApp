@@ -179,6 +179,7 @@ jobs:
           echo "DEBUG=@electron/osx-sign,electron-forge:*" >> $GITHUB_ENV
 
       - name: Build application
+        shell: bash
         run: |
           # Vérifications macOS uniquement
           if [ "${{ matrix.os.name }}" == "macos-intel" ] || [ "${{ matrix.os.name }}" == "macos-arm" ]; then
