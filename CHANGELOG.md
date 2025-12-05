@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.8
+
+### Patch Changes
+
+- 009f3ad: Ajout de logs de debug pour diagnostiquer pourquoi la signature n'est pas appliquée
+
 ## 0.1.7
 
 ### Patch Changes
