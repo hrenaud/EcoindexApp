@@ -166,9 +166,40 @@ jobs:
         run: |
           echo "Vérification de la signature de l'application..."
           # Trouver l'application dans le répertoire de build
-          APP_PATH=$(find out/make -name "*.app" -type d | head -1)
+          # Electron Forge place les apps dans out/make/zip/darwin/{arch}/
+          ARCH=$(uname -m)
+          if [ "$ARCH" = "arm64" ]; then
+            ARCH_DIR="arm64"
+          else
+            ARCH_DIR="x64"
+          fi
+          
+          # Chercher dans le ZIP d'abord (car c'est ce qui est créé par Electron Forge)
+          ZIP_DIR="out/make/zip/darwin/${ARCH_DIR}"
+          if [ -d "$ZIP_DIR" ]; then
+            # Extraire temporairement pour vérifier
+            TEMP_EXTRACT=$(mktemp -d)
+            ZIP_FILE=$(find "$ZIP_DIR" -name "*.zip" -type f | head -1)
+            if [ -n "$ZIP_FILE" ]; then
+              echo "Extraction temporaire du ZIP pour vérification..."
+              ditto -xk "$ZIP_FILE" "$TEMP_EXTRACT"
+              APP_PATH=$(find "$TEMP_EXTRACT" -name "*.app" -type d | head -1)
+            fi
+          fi
+          
+          # Si pas trouvé dans le ZIP, chercher directement
+          if [ -z "$APP_PATH" ]; then
+            APP_PATH=$(find out/make -name "*.app" -type d | head -1)
+          fi
+          
           if [ -z "$APP_PATH" ]; then
             echo "❌ Aucune application .app trouvée"
+            echo "Contenu de out/make:"
+            ls -la out/make/ || true
+            if [ -d "$ZIP_DIR" ]; then
+              echo "Contenu de $ZIP_DIR:"
+              ls -la "$ZIP_DIR" || true
+            fi
             exit 1
           fi
           echo "Application trouvée: $APP_PATH"
@@ -181,15 +212,20 @@ jobs:
             exit 1
           fi
           
-          # Vérifier la notarisation
+          # Vérifier la notarisation (peut prendre quelques minutes après la notarisation)
           if spctl --assess --verbose --type execute "$APP_PATH" 2>&1; then
             echo "✅ Notarisation vérifiée"
           else
-            echo "⚠️  Avertissement: La notarisation n'est pas vérifiée (peut prendre quelques minutes)"
+            echo "⚠️  Avertissement: La notarisation n'est pas vérifiée (peut prendre quelques minutes après la notarisation)"
           fi
           
           # Afficher les détails de la signature
           codesign -dvv "$APP_PATH" 2>&1 | head -20
+          
+          # Nettoyer l'extraction temporaire
+          if [ -n "$TEMP_EXTRACT" ] && [ -d "$TEMP_EXTRACT" ]; then
+            rm -rf "$TEMP_EXTRACT"
+          fi
 
       - name: Create DMG (macOS only)
         if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
