@@ -1,0 +1,198 @@
+# **************************
+#  Release Electron app
+#  Build and release on multiple OS (matrix) to generate installers
+#  Triggered after PR merge to main with changesets
+# **************************
+
+name: Release Electron app
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  check-release:
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check if version changed (should release)
+        id: check
+        run: |
+          # Vérifier si le dernier commit contient "chore: version packages" (créé par changeset)
+          LAST_COMMIT=$(git log -1 --pretty=%B)
+          if echo "$LAST_COMMIT" | grep -q "chore: version packages"; then
+            VERSION=$(node -e "const fs = require('fs'); const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8')); console.log(pkg.version);")
+            echo "should-release=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Version détectée: $VERSION"
+          else
+            echo "should-release=false" >> $GITHUB_OUTPUT
+            echo "version=" >> $GITHUB_OUTPUT
+            echo "Pas de version à publier (commit: $LAST_COMMIT)"
+          fi
+
+  build:
+    needs: check-release
+    if: needs.check-release.outputs.should-release == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - { name: 'linux', image: 'ubuntu-latest' }
+          - { name: 'windows', image: 'windows-latest' }
+          - { name: 'macos-intel', image: 'macos-13' }
+          - { name: 'macos-arm', image: 'macos-14' }
+    runs-on: ${{ matrix.os.image }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Setup Python (macOS only)
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Debug APPLE_ID (macOS only)
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        run: echo ${APPLE_ID:0:3}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+
+      - name: Debug APPLE_APP_SPECIFIC_PASSWORD (macOS only)
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        run: echo ${APPLE_APP_SPECIFIC_PASSWORD:0:3}
+        env:
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+
+      - name: Debug APPLE_TEAM_ID (macOS only)
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        run: echo ${APPLE_TEAM_ID:0:3}
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Add macOS certificates (macOS only, optional)
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        run: |
+          if [ -f "add-osx-cert.sh" ] && [ -n "$CERTIFICATE_OSX_APPLICATION" ] && [ -n "$CERTIFICATE_PASSWORD" ]; then
+            chmod +x add-osx-cert.sh && ./add-osx-cert.sh
+            echo "Certificats macOS installés"
+          else
+            echo "Certificats macOS non configurés - l'application ne sera pas signée"
+          fi
+        env:
+          CERTIFICATE_OSX_APPLICATION: ${{ secrets.APPLE_APPLICATION_CERT }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
+
+      - name: Build application
+        env:
+          APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          DEBUG: '@electron/osx-sign,electron-forge:*'
+        run: |
+          npm run make
+
+      - name: Create DMG (macOS only)
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        run: |
+          node scripts/create-dmg.js
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os.name }}-artifacts
+          path: |
+            out/**/*.deb
+            out/**/*.dmg
+            out/**/*Setup.exe
+            out/**/*setup.exe
+            out/**/*.rpm
+            out/**/*.zip
+          retention-days: 7
+
+  release:
+    needs: [check-release, build]
+    if: needs.check-release.outputs.should-release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate Release.txt
+        run: echo ${{ github.sha }} > Release.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release Electron-app ${{ needs.check-release.outputs.version }}
+          tag_name: v${{ needs.check-release.outputs.version }}
+          files: |
+            Release.txt
+            artifacts/**/*.deb
+            artifacts/**/*.dmg
+            artifacts/**/*Setup.exe
+            artifacts/**/*setup.exe
+            artifacts/**/*.rpm
+            artifacts/**/*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm (if configured)
+        if: env.NPM_TOKEN != ''
+        run: npm publish
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+

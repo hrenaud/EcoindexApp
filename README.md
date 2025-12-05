@@ -116,18 +116,53 @@ This will prompt you to:
 2. Select the type of change (major, minor, patch)
 3. Write a summary of the changes
 
-### Versioning packages
+### Versioning packages and releases
 
-After changesets are merged, the GitHub Actions workflow will automatically:
-1. Create a PR with version bumps
-2. Merge the PR
-3. Publish to npm (if configured)
+The project uses GitHub Actions workflows for automated releases:
 
-You can also manually version packages:
+1. **Creating a changeset**: When you make changes, create a changeset:
+   ```bash
+   npm run changeset
+   ```
+
+2. **Opening a PR**: Push your changes with the changeset to a branch and open a PR to `main`.
+
+3. **Automatic version PR**: When the PR is merged to `main`, the Changeset workflow will:
+   - Detect the changeset
+   - Create a new PR titled "chore: version packages" with version bumps
+   - Update the changelog
+
+4. **Review and merge**: Review the version PR and merge it to `main`.
+
+5. **Automatic release**: After merging the version PR, the Release workflow will:
+   - Detect the version change (commit message "chore: version packages")
+   - Build the application for all platforms (Linux, Windows, macOS Intel, macOS ARM)
+   - Create DMG files for macOS
+   - Create a GitHub Release with all artifacts
+   - Optionally publish to npm (if `NPM_TOKEN` is configured)
+
+**Manual versioning** (for local testing):
 
 ```bash
 npm run version-packages
 ```
+
+**Secrets required for GitHub Actions:**
+
+**Required for macOS signing:**
+- `APPLE_IDENTITY`: Developer ID Application certificate name
+- `APPLE_ID`: Apple ID email
+- `APPLE_APP_SPECIFIC_PASSWORD`: App-specific password
+- `APPLE_TEAM_ID`: Apple Developer Team ID
+
+**Optional for macOS signing (if you use certificate files):**
+- `APPLE_APPLICATION_CERT`: Base64-encoded .p12 certificate (optional)
+- `APPLE_APPLICATION_CERT_PASSWORD`: Certificate password (optional)
+
+**Optional:**
+- `NPM_TOKEN`: npm token for publishing to npm (optional)
+
+**Note:** Si vous n'utilisez pas de certificat .p12 (via `APPLE_APPLICATION_CERT`), l'application sera signée avec l'identité configurée dans `APPLE_IDENTITY` si elle est disponible dans le keychain GitHub Actions. Si aucun certificat n'est configuré, l'application sera buildée mais non signée.
 
 ## Project Structure
 
