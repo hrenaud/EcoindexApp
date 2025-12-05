@@ -1,5 +1,12 @@
 # ecoindex-app
 
+## 0.1.6
+
+### Patch Changes
+
+- 0a16cb7: Ajout du fichier CONTRIBUTING.md avec toutes les informations de développement et simplification du README pour l'utilisation
+- beaecfb: Correction de l'extraction ZIP dans create-dmg.js pour préserver la signature et ajout de vérifications de signature dans le workflow
+
 ## 0.1.5
 
 ### Patch Changes
