@@ -1,0 +1,15 @@
+import { IpcRendererEvent } from 'electron';
+
+declare global {
+  interface Window {
+    ipcRenderer: {
+      on(channel: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): void;
+      off(channel: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): void;
+      send(channel: string, ...args: any[]): void;
+      invoke(channel: string, ...args: any[]): Promise<any>;
+    };
+  }
+}
+
+export {};
+
