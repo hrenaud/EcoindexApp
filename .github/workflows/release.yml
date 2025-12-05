@@ -189,6 +189,19 @@ jobs:
             echo "APPLE_TEAM_ID: $APPLE_TEAM_ID"
             echo "APPLE_APP_SPECIFIC_PASSWORD: ${APPLE_APP_SPECIFIC_PASSWORD:+✅ défini}"
             
+            # Vérifier que APPLE_IDENTITY contient "Developer ID"
+            if [ -n "$APPLE_IDENTITY" ]; then
+              if echo "$APPLE_IDENTITY" | grep -q "Developer ID"; then
+                echo "✅ APPLE_IDENTITY contient 'Developer ID'"
+              else
+                echo "❌ ERREUR: APPLE_IDENTITY ne contient pas 'Developer ID'"
+                echo "  Valeur: $APPLE_IDENTITY"
+                echo "  Cela empêchera hasSigningConfig d'être true dans forge.config.js"
+              fi
+            else
+              echo "❌ ERREUR: APPLE_IDENTITY n'est pas défini"
+            fi
+            
             # Vérifier que le certificat est accessible dans le keychain par défaut
             echo "Recherche du certificat dans le keychain..."
             security find-identity -v -p codesigning
@@ -205,6 +218,13 @@ jobs:
                 echo "✅ Certificat trouvé: $CERT_MATCH"
               fi
             fi
+          fi
+          
+          echo ""
+          echo "🔍 Variables d'environnement avant npm run make:"
+          echo "  APPLE_IDENTITY: ${APPLE_IDENTITY:+✅ défini}${APPLE_IDENTITY:-❌ non défini}"
+          if [ -n "$APPLE_IDENTITY" ]; then
+            echo "  APPLE_IDENTITY contient 'Developer ID': $(echo "$APPLE_IDENTITY" | grep -q "Developer ID" && echo "✅ oui" || echo "❌ non")"
           fi
           
           npm run make
@@ -260,11 +280,20 @@ jobs:
           if echo "$SIGNATURE_OUTPUT" | grep -q "Signature=adhoc"; then
             echo "❌ ERREUR: L'application n'est pas signée (signature adhoc)"
             echo "Vérifiez que hasSigningConfig est true dans forge.config.js"
+            echo ""
+            echo "Debug: Variables d'environnement au moment du build:"
+            echo "  APPLE_IDENTITY était défini: ${APPLE_IDENTITY:+oui}${APPLE_IDENTITY:-non}"
+            echo ""
+            echo "Vérifiez les logs du step 'Build application' pour voir si hasSigningConfig était true"
             exit 1
-          elif [ $SIGNATURE_EXIT -eq 0 ] || echo "$SIGNATURE_OUTPUT" | grep -q "Signature="; then
-            echo "✅ Signature vérifiée"
+          elif echo "$SIGNATURE_OUTPUT" | grep -q "Signature=" && ! echo "$SIGNATURE_OUTPUT" | grep -q "Signature=adhoc"; then
+            echo "✅ Signature vérifiée (non-adhoc)"
+          elif [ $SIGNATURE_EXIT -eq 0 ]; then
+            echo "✅ Signature vérifiée (code de sortie: 0)"
           else
             echo "⚠️  Avertissement: Impossible de vérifier la signature (code: $SIGNATURE_EXIT)"
+            echo "Sortie complète:"
+            echo "$SIGNATURE_OUTPUT"
           fi
           
           # Vérifier la notarisation (peut prendre quelques minutes après la notarisation)
