@@ -94,10 +94,38 @@ To sign the macOS application:
    npm run make
    ```
 
+#### Obtaining Apple Developer Certificates
+
+**For GitHub Actions, you need to export your certificate:**
+
+1. **Open Keychain Access** on your Mac
+2. **Find your certificate**: Look for "Developer ID Application: Your Name (TEAM_ID)"
+3. **Export the certificate**:
+   - Right-click on the certificate
+   - Select "Export [Certificate Name]"
+   - Choose format: **Personal Information Exchange (.p12)**
+   - Choose a location and save it
+   - **Set a password** when prompted (remember this password!)
+4. **Encode the certificate to base64**:
+   ```bash
+   base64 -i /path/to/your/certificate.p12 | pbcopy
+   ```
+   This copies the base64-encoded certificate to your clipboard
+5. **Set the GitHub secrets**:
+   - `APPLE_APPLICATION_CERT`: Paste the base64-encoded certificate (from step 4)
+   - `APPLE_APPLICATION_CERT_PASSWORD`: The password you set when exporting the .p12 file
+
 **Note:** 
 - The `.env` file is ignored by git for security reasons
 - Windows and Linux builds are not signed
-- If you don't fill in the credentials, the app will build but won't be signed/notarized
+- **IMPORTANT:** For GitHub Actions releases, all signing secrets must be configured in the repository settings:
+  - `APPLE_IDENTITY`: Developer ID Application certificate name (e.g., "Developer ID Application: Your Name (TEAM_ID)")
+  - `APPLE_ID`: Apple ID email
+  - `APPLE_APP_SPECIFIC_PASSWORD`: App-specific password (create at https://appleid.apple.com/account/manage)
+  - `APPLE_TEAM_ID`: Apple Developer Team ID (found in your Apple Developer account)
+  - `APPLE_APPLICATION_CERT`: Base64-encoded .p12 certificate (see instructions above)
+  - `APPLE_APPLICATION_CERT_PASSWORD`: Password used when exporting the .p12 certificate
+- The build will **fail** if signing credentials are not properly configured
 
 ## Version Management with Changeset
 

@@ -110,18 +110,46 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
-      - name: Add macOS certificates (macOS only, optional)
+      - name: Add macOS certificates (macOS only)
         if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
         run: |
           if [ -f "add-osx-cert.sh" ] && [ -n "$CERTIFICATE_OSX_APPLICATION" ] && [ -n "$CERTIFICATE_PASSWORD" ]; then
             chmod +x add-osx-cert.sh && ./add-osx-cert.sh
-            echo "Certificats macOS installés"
+            echo "✅ Certificats macOS installés"
           else
-            echo "Certificats macOS non configurés - l'application ne sera pas signée"
+            echo "❌ ERREUR: Certificats macOS non configurés"
+            echo "Les secrets suivants doivent être configurés dans GitHub:"
+            echo "  - APPLE_APPLICATION_CERT"
+            echo "  - APPLE_APPLICATION_CERT_PASSWORD"
+            echo "  - APPLE_IDENTITY"
+            echo "  - APPLE_ID"
+            echo "  - APPLE_APP_SPECIFIC_PASSWORD"
+            echo "  - APPLE_TEAM_ID"
+            exit 1
           fi
         env:
           CERTIFICATE_OSX_APPLICATION: ${{ secrets.APPLE_APPLICATION_CERT }}
           CERTIFICATE_PASSWORD: ${{ secrets.APPLE_APPLICATION_CERT_PASSWORD }}
+
+      - name: Verify signing configuration (macOS only)
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        run: |
+          if [ -z "$APPLE_IDENTITY" ] || [ -z "$APPLE_ID" ] || [ -z "$APPLE_APP_SPECIFIC_PASSWORD" ] || [ -z "$APPLE_TEAM_ID" ]; then
+            echo "❌ ERREUR: Configuration de signature macOS incomplète"
+            echo "Les secrets suivants doivent être configurés:"
+            echo "  - APPLE_IDENTITY: ${APPLE_IDENTITY:+✅ défini}${APPLE_IDENTITY:-❌ manquant}"
+            echo "  - APPLE_ID: ${APPLE_ID:+✅ défini}${APPLE_ID:-❌ manquant}"
+            echo "  - APPLE_APP_SPECIFIC_PASSWORD: ${APPLE_APP_SPECIFIC_PASSWORD:+✅ défini}${APPLE_APP_SPECIFIC_PASSWORD:-❌ manquant}"
+            echo "  - APPLE_TEAM_ID: ${APPLE_TEAM_ID:+✅ défini}${APPLE_TEAM_ID:-❌ manquant}"
+            exit 1
+          fi
+          echo "✅ Configuration de signature macOS complète"
+          echo "APPLE_IDENTITY: ${APPLE_IDENTITY:0:20}..."
+        env:
+          APPLE_IDENTITY: ${{ secrets.APPLE_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Build application
         env:
