@@ -179,15 +179,26 @@ jobs:
         run: |
           # Vérifier que les variables d'environnement sont bien définies
           echo "Vérification des variables de signature..."
-          echo "APPLE_IDENTITY: ${APPLE_IDENTITY:0:30}..."
+          echo "APPLE_IDENTITY complet: $APPLE_IDENTITY"
           echo "APPLE_ID: ${APPLE_ID:0:10}..."
           echo "APPLE_TEAM_ID: $APPLE_TEAM_ID"
           echo "APPLE_APP_SPECIFIC_PASSWORD: ${APPLE_APP_SPECIFIC_PASSWORD:+✅ défini}"
           
-          # Vérifier que le certificat est accessible
+          # Vérifier que le certificat est accessible dans le keychain par défaut
+          echo "Recherche du certificat dans le keychain..."
+          security find-identity -v -p codesigning
+          
+          # Vérifier spécifiquement le certificat recherché
           if [ -n "$APPLE_IDENTITY" ]; then
-            echo "Recherche du certificat: $APPLE_IDENTITY"
-            security find-identity -v -p codesigning | grep "$APPLE_IDENTITY" || echo "⚠️  Certificat non trouvé dans le keychain"
+            echo "Recherche du certificat exact: $APPLE_IDENTITY"
+            CERT_MATCH=$(security find-identity -v -p codesigning | grep -i "$APPLE_IDENTITY" || echo "")
+            if [ -z "$CERT_MATCH" ]; then
+              echo "⚠️  ATTENTION: Le certificat '$APPLE_IDENTITY' n'a pas été trouvé exactement"
+              echo "Certificats Developer ID disponibles:"
+              security find-identity -v -p codesigning | grep "Developer ID"
+            else
+              echo "✅ Certificat trouvé: $CERT_MATCH"
+            fi
           fi
           
           npm run make
