@@ -46,6 +46,32 @@ Build installers for all platforms:
 npm run make
 ```
 
+**Note:** Par défaut, Electron Forge build pour l'architecture de votre machine. Pour builder pour Mac Intel et ARM depuis un Mac :
+- Sur Mac ARM : buildera automatiquement pour ARM64, utilisez `--arch=x64,arm64` pour les deux
+- Sur Mac Intel : buildera automatiquement pour x64, utilisez `--arch=x64,arm64` pour les deux
+
+Exemple pour builder pour les deux architectures Mac :
+```bash
+npm run make -- --arch=x64,arm64
+```
+
+### Creating DMG for macOS
+
+After building, you can create a DMG file for macOS distribution:
+
+```bash
+npm run make:dmg
+```
+
+This command will:
+1. Build the application (`npm run make`)
+2. Extract the ZIP file
+3. Create a DMG using macOS native tools (`hdiutil`)
+
+The DMG will be created in `out/make/zip/darwin/{arch}/` alongside the ZIP file.
+
+**Note:** The DMG creation uses native macOS tools and doesn't require any external dependencies. The `@electron-forge/maker-dmg` package is disabled due to compatibility issues with Node.js 22.
+
 ### Code Signing (macOS only)
 
 To sign the macOS application:

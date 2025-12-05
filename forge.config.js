@@ -2,16 +2,23 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
 import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
-// import { MakerDMG } from '@electron-forge/maker-dmg'; // Désactivé temporairement
+// import { MakerDMG } from '@electron-forge/maker-dmg'; // Désactivé : appdmg nécessite des binaires natifs incompatibles avec Node.js 22
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerRpm } from '@electron-forge/maker-rpm';
 import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { VitePlugin } from '@electron-forge/plugin-vite';
+import { fileURLToPath } from 'node:url';
 import { config as loadEnv } from 'dotenv';
+import path from 'node:path';
+import { readFileSync } from 'node:fs';
 
 // Charger les variables d'environnement depuis .env
 loadEnv();
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const packageJson = JSON.parse(readFileSync(path.join(__dirname, 'package.json'), 'utf-8'));
+const { version } = packageJson;
 
 // Vérifier si les variables de signature sont définies
 const hasSigningConfig = 
@@ -23,13 +30,19 @@ const config = {
   packagerConfig: {
     asar: true,
     name: 'EcoindexApp',
-    executableName: 'ecoindex-app',
+    executableName: process.platform === 'linux' ? 'ecoindex-app' : 'EcoindexApp',
+    appBundleId: 'io.greenit.ecoindex-ligthouse',
+    appCategoryType: 'public.app-category.developer-tools',
+    appCopyright: 'Copyright 2024-2030 Association Green IT',
+    darwinDarkModeSupport: true,
+    icon: path.resolve(__dirname, 'assets', 'app-ico'),
     // Configuration pour la signature Mac uniquement (seulement si configuré)
     ...(hasSigningConfig && {
       osxSign: {
         identity: process.env.APPLE_IDENTITY,
         optionsForFile: () => ({
-          entitlements: 'entitlements.mac.plist',
+          entitlements: path.resolve(__dirname, 'entitlements.mac.plist'),
+          hardenedRuntime: true,
         }),
       },
       osxNotarize: process.env.APPLE_ID && process.env.APPLE_APP_SPECIFIC_PASSWORD && process.env.APPLE_TEAM_ID
@@ -41,36 +54,60 @@ const config = {
           }
         : undefined,
     }),
-    // Pas de signature pour Windows et Linux
+    // Métadonnées Windows
     win32metadata: {
-      CompanyName: 'EcoindexApp',
-      FileDescription: 'EcoindexApp',
+      CompanyName: 'Association Green IT',
+      OriginalFilename: 'Ecoindex',
+      FileDescription: 'An application to measure the ecological impact of a website with LightHouse and Ecoindex.',
       ProductName: 'EcoindexApp',
     },
   },
   rebuildConfig: {},
   makers: [
+    // ZIP pour toutes les plateformes
+    new MakerZIP({}, ['darwin', 'linux', 'win32']),
+    // DMG pour macOS (Intel et ARM) - Désactivé car appdmg nécessite des binaires natifs
+    // qui ne compilent pas avec Node.js 22+ et Python 3.13+ (voir https://github.com/electron/forge/issues/2807 et #3717)
+    // Solution alternative : utiliser le script scripts/create-dmg.js qui utilise hdiutil (outil natif macOS)
+    // Pour créer un DMG, utilisez : npm run make:dmg
+    // new MakerDMG(
+    //   {
+    //     format: 'ULFO',
+    //     icon: path.resolve(__dirname, 'assets', 'app-ico.icns'),
+    //     overwrite: true,
+    //   },
+    //   ['darwin']
+    // ),
+    // RPM pour Linux
+    new MakerRpm(
+      {
+        options: {
+          name: 'ecoindex-app',
+          homepage: 'https://github.com/cnumr/EcoindexApp',
+        },
+      },
+      ['linux']
+    ),
+    // DEB pour Linux
+    new MakerDeb(
+      {
+        options: {
+          name: 'ecoindex-app',
+          categories: ['Utility'],
+          maintainer: 'Renaud Héluin',
+          homepage: 'https://github.com/cnumr/EcoindexApp',
+        },
+      },
+      ['linux']
+    ),
+    // Squirrel pour Windows
     new MakerSquirrel({
       name: 'ecoindex-app',
-    }),
-    new MakerZIP({}, ['darwin']),
-    // MakerDMG désactivé temporairement car appdmg nécessite des dépendances natives
-    // Pour créer un DMG, vous pouvez utiliser create-dmg après le build
-    // new MakerDMG({
-    //   name: 'EcoindexApp',
-    //   format: 'UDZO',
-    // }),
-    new MakerRpm({
-      options: {
-        name: 'ecoindex-app',
-      },
-    }),
-    new MakerDeb({
-      options: {
-        name: 'ecoindex-app',
-        maintainer: 'EcoindexApp',
-        homepage: 'https://github.com/yourusername/EcoindexApp-2025',
-      },
+      setupExe: `ecoindex-app-${version}-win32-setup.exe`,
+      setupIcon: path.resolve(__dirname, 'assets', 'app-ico.ico'),
+      authors: 'Renaud Heluin',
+      description: 'An application to measure the ecological impact of a website with LightHouse and Ecoindex.',
+      language: 1033,
     }),
   ],
   plugins: [
