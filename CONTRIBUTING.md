@@ -91,6 +91,12 @@ Pour signer l'application macOS localement :
    APPLE_APP_SPECIFIC_PASSWORD="your-app-specific-password"
    APPLE_TEAM_ID="YOUR_TEAM_ID"
    ```
+   
+   **Important :** `APPLE_IDENTITY` doit contenir le **nom complet** du certificat, pas seulement le Team ID. 
+   - ✅ Correct : `"Developer ID Application: Your Name (TEAM_ID)"`
+   - ❌ Incorrect : `"TEAM_ID"` ou `"Your Name"`
+   
+   Pour trouver le nom exact, ouvrez Keychain Access et cherchez votre certificat "Developer ID Application".
 
 3. Builder l'application :
    ```bash
@@ -106,7 +112,15 @@ Pour signer l'application macOS localement :
 
 Pour les releases GitHub Actions, tous les secrets de signature doivent être configurés dans les paramètres du dépôt (Settings > Secrets and variables > Actions) :
 
-- `APPLE_IDENTITY`: Nom du certificat Developer ID Application (ex: "Developer ID Application: Your Name (TEAM_ID)")
+- `APPLE_IDENTITY`: **Nom complet** du certificat Developer ID Application (ex: `"Developer ID Application: Your Name (TEAM_ID)"`)
+  
+  **⚠️ Important :** Ce doit être le nom complet du certificat tel qu'affiché dans Keychain Access, pas seulement le Team ID. Le nom doit contenir "Developer ID" pour que la signature fonctionne.
+  
+  Pour trouver le nom exact :
+  1. Ouvrez Keychain Access sur votre Mac
+  2. Recherchez "Developer ID Application"
+  3. Le nom complet s'affiche, par exemple : `Developer ID Application: Your Name (TEAM_ID)`
+  4. Copiez ce nom complet dans le secret GitHub
 - `APPLE_ID`: Email Apple ID
 - `APPLE_APP_SPECIFIC_PASSWORD`: Mot de passe spécifique à l'application (créé sur https://appleid.apple.com/account/manage)
 - `APPLE_TEAM_ID`: Team ID Apple Developer
