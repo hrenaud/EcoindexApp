@@ -169,13 +169,16 @@ jobs:
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
+      - name: Set macOS environment variables
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        run: |
+          echo "APPLE_IDENTITY=${{ secrets.APPLE_IDENTITY }}" >> $GITHUB_ENV
+          echo "APPLE_ID=${{ secrets.APPLE_ID }}" >> $GITHUB_ENV
+          echo "APPLE_APP_SPECIFIC_PASSWORD=${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}" >> $GITHUB_ENV
+          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> $GITHUB_ENV
+          echo "DEBUG=@electron/osx-sign,electron-forge:*" >> $GITHUB_ENV
+
       - name: Build application
-        env:
-          APPLE_IDENTITY: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && secrets.APPLE_IDENTITY || '' }}
-          APPLE_ID: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && secrets.APPLE_ID || '' }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
-          APPLE_TEAM_ID: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && secrets.APPLE_TEAM_ID || '' }}
-          DEBUG: ${{ (matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm') && '@electron/osx-sign,electron-forge:*' || '' }}
         run: |
           # Vérifications macOS uniquement
           if [ "${{ matrix.os.name }}" == "macos-intel" ] || [ "${{ matrix.os.name }}" == "macos-arm" ]; then
