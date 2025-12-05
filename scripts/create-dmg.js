@@ -81,7 +81,8 @@ function findLatestApp() {
         mkdirSync(extractDir, { recursive: true });
         
         console.log(`Extraction de ${zipFile}...`);
-        execSync(`unzip -q -o "${zipFile}" -d "${extractDir}"`, { stdio: 'inherit' });
+        // Utiliser ditto pour extraire et préserver les attributs étendus et la signature
+        execSync(`ditto -xk "${zipFile}" "${extractDir}"`, { stdio: 'inherit' });
         
         // Trouver le .app
         const extractedFiles = readdirSync(extractDir);

@@ -161,10 +161,70 @@ jobs:
         run: |
           npm run make
 
+      - name: Verify code signature (macOS only)
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        run: |
+          echo "Vérification de la signature de l'application..."
+          # Trouver l'application dans le répertoire de build
+          APP_PATH=$(find out/make -name "*.app" -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ Aucune application .app trouvée"
+            exit 1
+          fi
+          echo "Application trouvée: $APP_PATH"
+          
+          # Vérifier la signature
+          if codesign -dv --verbose=4 "$APP_PATH" 2>&1; then
+            echo "✅ Signature vérifiée"
+          else
+            echo "❌ ERREUR: La signature n'est pas valide"
+            exit 1
+          fi
+          
+          # Vérifier la notarisation
+          if spctl --assess --verbose --type execute "$APP_PATH" 2>&1; then
+            echo "✅ Notarisation vérifiée"
+          else
+            echo "⚠️  Avertissement: La notarisation n'est pas vérifiée (peut prendre quelques minutes)"
+          fi
+          
+          # Afficher les détails de la signature
+          codesign -dvv "$APP_PATH" 2>&1 | head -20
+
       - name: Create DMG (macOS only)
         if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
         run: |
           node scripts/create-dmg.js
+
+      - name: Verify DMG signature (macOS only)
+        if: matrix.os.name == 'macos-intel' || matrix.os.name == 'macos-arm'
+        run: |
+          echo "Vérification de la signature dans le DMG..."
+          # Trouver le DMG créé
+          DMG_PATH=$(find out/make -name "*.dmg" -type f | head -1)
+          if [ -z "$DMG_PATH" ]; then
+            echo "⚠️  Aucun DMG trouvé"
+            exit 0
+          fi
+          echo "DMG trouvé: $DMG_PATH"
+          
+          # Monter le DMG temporairement pour vérifier
+          MOUNT_POINT=$(mktemp -d)
+          hdiutil attach "$DMG_PATH" -mountpoint "$MOUNT_POINT" -quiet
+          
+          APP_IN_DMG=$(find "$MOUNT_POINT" -name "*.app" -type d | head -1)
+          if [ -n "$APP_IN_DMG" ]; then
+            echo "Vérification de la signature de l'application dans le DMG..."
+            if codesign -dv --verbose=4 "$APP_IN_DMG" 2>&1; then
+              echo "✅ Signature vérifiée dans le DMG"
+            else
+              echo "❌ ERREUR: La signature n'est pas valide dans le DMG"
+              hdiutil detach "$MOUNT_POINT" -quiet
+              exit 1
+            fi
+          fi
+          
+          hdiutil detach "$MOUNT_POINT" -quiet
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
