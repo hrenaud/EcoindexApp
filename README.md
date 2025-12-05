@@ -1,6 +1,6 @@
 # EcoindexApp
 
-An application to measure the ecological impact of a website with LightHouse and Ecoindex.
+An application to measure the ecological impact of a website with Lighthouse and Ecoindex.
 
 ## Technologies
 
