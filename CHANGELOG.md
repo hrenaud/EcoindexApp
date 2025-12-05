@@ -1,5 +1,13 @@
 # ecoindex-app
 
+## 0.1.4
+
+### Patch Changes
+
+- 7fe4e2a: Ajout d'instructions détaillées pour obtenir et encoder le certificat macOS
+- 9f9bff1: Ajout de documentation pour ouvrir les applications non signées sur macOS
+- f660ba3: Exiger la signature macOS dans le workflow GitHub Actions
+
 ## 0.1.3
 
 ### Patch Changes
