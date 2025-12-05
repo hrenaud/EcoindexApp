@@ -1,5 +1,11 @@
 # ecoindex-app
 
+## 0.1.11
+
+### Patch Changes
+
+- bc5e4ff: Correction des builds Linux et Windows en conditionnant les commandes macOS
+
 ## 0.1.10
 
 ### Patch Changes
