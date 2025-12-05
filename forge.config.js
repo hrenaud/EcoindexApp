@@ -26,6 +26,15 @@ const hasSigningConfig =
   process.env.APPLE_IDENTITY.trim() !== '' &&
   process.env.APPLE_IDENTITY.includes('Developer ID');
 
+// Debug: afficher la configuration de signature
+if (process.platform === 'darwin') {
+  console.log('🔍 Configuration de signature macOS:');
+  console.log('  hasSigningConfig:', hasSigningConfig);
+  console.log('  APPLE_IDENTITY:', process.env.APPLE_IDENTITY ? `${process.env.APPLE_IDENTITY.substring(0, 30)}...` : 'non défini');
+  console.log('  APPLE_ID:', process.env.APPLE_ID ? `${process.env.APPLE_ID.substring(0, 10)}...` : 'non défini');
+  console.log('  APPLE_TEAM_ID:', process.env.APPLE_TEAM_ID || 'non défini');
+}
+
 const config = {
   packagerConfig: {
     asar: true,

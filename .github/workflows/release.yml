@@ -116,6 +116,10 @@ jobs:
           if [ -f "add-osx-cert.sh" ] && [ -n "$CERTIFICATE_OSX_APPLICATION" ] && [ -n "$CERTIFICATE_PASSWORD" ]; then
             chmod +x add-osx-cert.sh && ./add-osx-cert.sh
             echo "✅ Certificats macOS installés"
+            
+            # Vérifier que le certificat est bien installé
+            echo "Vérification des certificats installés..."
+            security find-identity -v -p codesigning | grep "Developer ID" || echo "⚠️  Aucun certificat Developer ID trouvé"
           else
             echo "❌ ERREUR: Certificats macOS non configurés"
             echo "Les secrets suivants doivent être configurés dans GitHub:"
@@ -159,6 +163,19 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           DEBUG: '@electron/osx-sign,electron-forge:*'
         run: |
+          # Vérifier que les variables d'environnement sont bien définies
+          echo "Vérification des variables de signature..."
+          echo "APPLE_IDENTITY: ${APPLE_IDENTITY:0:30}..."
+          echo "APPLE_ID: ${APPLE_ID:0:10}..."
+          echo "APPLE_TEAM_ID: $APPLE_TEAM_ID"
+          echo "APPLE_APP_SPECIFIC_PASSWORD: ${APPLE_APP_SPECIFIC_PASSWORD:+✅ défini}"
+          
+          # Vérifier que le certificat est accessible
+          if [ -n "$APPLE_IDENTITY" ]; then
+            echo "Recherche du certificat: $APPLE_IDENTITY"
+            security find-identity -v -p codesigning | grep "$APPLE_IDENTITY" || echo "⚠️  Certificat non trouvé dans le keychain"
+          fi
+          
           npm run make
 
       - name: Verify code signature (macOS only)
