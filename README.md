@@ -99,6 +99,21 @@ To sign the macOS application:
 - Windows and Linux builds are not signed
 - If you don't fill in the credentials, the app will build but won't be signed/notarized
 
+#### Opening unsigned applications on macOS
+
+If you download an unsigned application from GitHub, macOS may show an error saying the app is "damaged" or "cannot be opened". This is a security feature. To open it:
+
+1. **Right-click (or Control+click) on the application** in Finder
+2. Select **"Open"** from the context menu
+3. Click **"Open"** in the security dialog
+
+Alternatively, you can remove the quarantine attribute using Terminal:
+```bash
+xattr -d com.apple.quarantine /path/to/EcoindexApp.app
+```
+
+**Note:** For production releases, the application should be properly signed and notarized using the credentials above.
+
 ## Version Management with Changeset
 
 This project uses [Changesets](https://github.com/changesets/changesets) for version management.
