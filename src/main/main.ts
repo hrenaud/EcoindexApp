@@ -3,7 +3,14 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { app, BrowserWindow, Menu, ipcMain } from 'electron'
+import log from 'electron-log'
 import Store from 'electron-store'
+
+// Configuration de electron-log
+log.initialize()
+log.transports.file.level = 'info'
+log.transports.console.level =
+    process.env.NODE_ENV === 'development' ? 'debug' : 'info'
 
 const require = createRequire(import.meta.url)
 
