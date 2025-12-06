@@ -213,6 +213,67 @@ Le projet utilise des workflows GitHub Actions pour les releases automatisées :
 npm run version-packages
 ```
 
+## Validation des messages de commit
+
+Le projet utilise **Commitlint** pour valider que les messages de commit respectent les conventions.
+
+### Format des messages de commit
+
+Les messages de commit doivent suivre le format [Conventional Commits](https://www.conventionalcommits.org/) :
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types autorisés :**
+
+- `feat` : Nouvelle fonctionnalité
+- `fix` : Correction de bug
+- `docs` : Documentation
+- `chore` : Tâches de maintenance
+- `style` : Changements de style (formatage, etc.)
+- `refactor` : Refactorisation du code
+- `ci` : Changements de configuration CI/CD
+- `test` : Ajout ou modification de tests
+- `revert` : Annulation d'un commit précédent
+- `perf` : Amélioration des performances
+- `vercel` : Déploiement Vercel
+
+**Exemples de messages valides :**
+
+```bash
+feat: ajouter la fonctionnalité de recherche
+fix: corriger le bug de connexion
+docs: mettre à jour le README
+chore: mettre à jour les dépendances
+```
+
+**Exemples de messages invalides :**
+
+```bash
+# ❌ Pas de type
+ajouter la fonctionnalité de recherche
+
+# ❌ Type non autorisé
+update: mettre à jour les dépendances
+```
+
+### Hook Git
+
+Un hook `commit-msg` est configuré avec Husky pour valider automatiquement les messages de commit. Si le message ne respecte pas les conventions, le commit sera bloqué.
+
+**Désactiver temporairement la validation :**
+
+```bash
+git commit --no-verify -m "message"
+```
+
+⚠️ **Note :** Utilisez `--no-verify` uniquement en cas d'urgence. Les messages de commit doivent toujours respecter les conventions pour maintenir un historique propre.
+
 ## Internationalisation (i18n)
 
 Le projet utilise `i18next` et `react-i18next` pour l'internationalisation. Les traductions sont stockées dans `src/locales/{lang}/translation.json`.
@@ -273,6 +334,16 @@ Corriger automatiquement les erreurs de linting :
 ```bash
 npm run lint:fix
 ```
+
+**Plugins ESLint configurés :**
+
+- `eslint-plugin-react` : Règles pour React
+- `eslint-plugin-react-hooks` : Règles pour les hooks React
+- `eslint-plugin-import` : Validation et tri automatique des imports
+    - Les imports sont automatiquement triés par ordre alphabétique
+    - Les groupes d'imports sont séparés par des lignes vides (builtin, external, internal, etc.)
+- `@typescript-eslint/eslint-plugin` : Règles TypeScript
+- `eslint-config-prettier` : Désactive les règles ESLint qui entrent en conflit avec Prettier
 
 ### Formatage avec Prettier
 
