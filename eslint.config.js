@@ -8,6 +8,9 @@ import tsparser from '@typescript-eslint/parser';
 export default [
   js.configs.recommended,
   {
+    ignores: ['lib/**', 'out/**', '.vite/**', 'dist/**', 'dist-electron/**', 'node_modules/**'],
+  },
+  {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 'latest',

@@ -6,6 +6,7 @@
   "main": ".vite/build/main.js",
   "type": "module",
   "scripts": {
+    "test": "echo 'No tests yet'",
     "start": "electron-forge start",
     "package": "npm run lint && electron-forge package",
     "premake": "npm run asar:pack:lib",
@@ -19,6 +20,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "npm run build && changeset publish",
+    "localize:generate": "babel -f .babelrc 'src/**/*.{js,jsx,ts,tsx}' --out-dir .babel-temp --copy-files --quiet && rm -rf .babel-temp",
     "postinstall": "cd lib && npm ci",
     "update-packages": "cd lib && rm -rf node_modules && npm i lighthouse@latest lighthouse-plugin-ecoindex-core@latest lighthouse-plugin-ecoindex-courses@latest --save --save-exact",
     "prepare": "husky"
@@ -32,6 +34,13 @@
   "author": "",
   "license": "AGPL-3.0",
   "devDependencies": {
+    "@babel/cli": "^7.28.3",
+    "@babel/core": "^7.28.5",
+    "@babel/plugin-transform-modules-commonjs": "^7.27.1",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-flow": "^7.27.1",
+    "@babel/preset-react": "^7.28.5",
+    "@babel/preset-typescript": "^7.28.5",
     "@changesets/cli": "^2.27.1",
     "@electron-forge/cli": "^7.10.2",
     "@electron-forge/maker-deb": "^7.10.2",
@@ -54,6 +63,8 @@
     "@vitejs/plugin-react": "^5.1.1",
     "async": "^3.2.6",
     "autoprefixer": "^10.4.20",
+    "babel-loader": "^10.0.0",
+    "babel-plugin-i18next-extract": "^1.1.0",
     "dotenv": "^17.2.3",
     "electron": "^39.2.5",
     "electron-installer-dmg": "^5.0.1",
@@ -72,9 +83,12 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "electron-squirrel-startup": "^1.0.1",
+    "i18next": "^25.7.1",
+    "i18next-resources-to-backend": "^1.2.1",
     "lucide-react": "^0.555.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "react-i18next": "^16.4.0",
     "tailwind-merge": "^3.4.0"
   }
 }
