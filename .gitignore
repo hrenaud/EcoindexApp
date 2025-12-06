@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-electron
+.vite
 *.local
 
 # Editor directories and files
@@ -41,3 +42,6 @@ out
 .env
 !.env.example
 
+# Extra resources
+!lib
+src/extraResources/lib.asar

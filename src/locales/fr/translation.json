@@ -1,0 +1,16 @@
+{
+  "app": {
+    "count": "Le compteur est à {{count}}",
+    "description": "Une application pour mesurer l'impact écologique d'un site web avec LightHouse et Ecoindex.",
+    "reset": "Réinitialiser",
+    "title": "EcoindexApp",
+    "welcome": "Bienvenue dans EcoindexApp ! Ceci est une application exemple construite avec Electron, React, Tailwind et Shadcn."
+  },
+  "language": {
+    "change": "Changer la langue",
+    "english": "Anglais",
+    "french": "Français",
+    "label": "Langue",
+    "view": "Affichage"
+  }
+}

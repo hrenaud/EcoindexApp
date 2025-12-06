@@ -1,40 +1,59 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { Button } from '@/components/ui/button'
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card'
 
 function App() {
-  const [count, setCount] = useState(0);
+    const [count, setCount] = useState(0)
+    const { t } = useTranslation()
 
-  return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>EcoindexApp</CardTitle>
-            <CardDescription>
-              An application to measures the ecological impact of a website with LightHouse and Ecoindex.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p className="text-muted-foreground">
-                Welcome to EcoindexApp! This is a sample application built with Electron, React, Tailwind, and Shadcn.
-              </p>
-              <div className="flex items-center gap-4">
-                <Button onClick={() => setCount((count) => count + 1)}>
-                  Count is {count}
-                </Button>
-                <Button variant="outline" onClick={() => setCount(0)}>
-                  Reset
-                </Button>
-              </div>
+    return (
+        <div className="bg-background min-h-screen p-8">
+            <div className="mx-auto max-w-4xl space-y-8">
+                <div className="flex justify-end">
+                    <LanguageSwitcher />
+                </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{t('app.title')}</CardTitle>
+                        <CardDescription>
+                            {t('app.description')}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <p className="text-muted-foreground">
+                                {t('app.welcome')}
+                            </p>
+                            <div className="flex items-center gap-4">
+                                <Button
+                                    onClick={() =>
+                                        setCount((count) => count + 1)
+                                    }
+                                >
+                                    {t('app.count', { count })}
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setCount(0)}
+                                >
+                                    {t('app.reset')}
+                                </Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+        </div>
+    )
 }
 
-export default App;
-
+export default App
