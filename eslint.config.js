@@ -175,7 +175,7 @@ export default [
         },
     },
     {
-        files: ['forge.config.js', 'vite.*.config.ts'],
+        files: ['forge.config.js', 'vite.*.config.ts', 'src/main/**/*.ts'],
         languageOptions: {
             globals: {
                 ...globals.node,
