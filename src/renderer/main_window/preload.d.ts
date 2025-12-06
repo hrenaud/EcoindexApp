@@ -14,6 +14,11 @@ declare global {
             send(channel: string, ...args: any[]): void
             invoke(channel: string, ...args: any[]): Promise<any>
         }
+        electronAPI: {
+            changeLanguage: (lang: string) => Promise<void>
+            getLanguage: () => Promise<string>
+            onLanguageChanged: (callback: (lang: string) => void) => () => void
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { Button } from '@/components/ui/button'
 import {
     Card,
@@ -17,6 +18,9 @@ function App() {
     return (
         <div className="bg-background min-h-screen p-8">
             <div className="mx-auto max-w-4xl space-y-8">
+                <div className="flex justify-end">
+                    <LanguageSwitcher />
+                </div>
                 <Card>
                     <CardHeader>
                         <CardTitle>{t('app.title')}</CardTitle>

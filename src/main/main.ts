@@ -2,7 +2,8 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, Menu, ipcMain } from 'electron'
+import Store from 'electron-store'
 
 const require = createRequire(import.meta.url)
 
@@ -74,6 +75,116 @@ let win: BrowserWindow | null = null
 // Here, you can also use other preload
 const preload = path.join(__dirname, 'preload.js')
 
+// Store pour persister les préférences
+const store = new Store({
+    defaults: {
+        language: 'en',
+    },
+})
+
+// Fonction pour créer le menu avec le sélecteur de langue
+function createMenu() {
+    const currentLang = (store.get('language') as string) || 'en'
+
+    const template = [
+        {
+            label: process.platform === 'darwin' ? app.getName() : 'File',
+            submenu: [
+                {
+                    role: 'quit',
+                },
+            ],
+        },
+        {
+            label: 'View',
+            submenu: [
+                {
+                    label: 'Language',
+                    submenu: [
+                        {
+                            label: 'Français',
+                            type: 'radio',
+                            checked: currentLang === 'fr',
+                            click: () => changeLanguage('fr'),
+                        },
+                        {
+                            label: 'English',
+                            type: 'radio',
+                            checked: currentLang === 'en',
+                            click: () => changeLanguage('en'),
+                        },
+                    ],
+                },
+                { type: 'separator' },
+                {
+                    role: 'reload',
+                },
+                {
+                    role: 'forceReload',
+                },
+                {
+                    role: 'toggleDevTools',
+                },
+                { type: 'separator' },
+                {
+                    role: 'resetZoom',
+                },
+                {
+                    role: 'zoomIn',
+                },
+                {
+                    role: 'zoomOut',
+                },
+                { type: 'separator' },
+                {
+                    role: 'togglefullscreen',
+                },
+            ],
+        },
+    ]
+
+    // Sur macOS, ajouter le menu standard
+    if (process.platform === 'darwin') {
+        template.unshift({
+            label: app.getName(),
+            submenu: [
+                { role: 'about' },
+                { type: 'separator' },
+                { role: 'services' },
+                { type: 'separator' },
+                { role: 'hide' },
+                { role: 'hideOthers' },
+                { role: 'unhide' },
+                { type: 'separator' },
+                { role: 'quit' },
+            ],
+        })
+    }
+
+    const menu = Menu.buildFromTemplate(template)
+    Menu.setApplicationMenu(menu)
+}
+
+// Fonction pour changer la langue
+function changeLanguage(lang: string) {
+    store.set('language', lang)
+    // Notifier toutes les fenêtres
+    BrowserWindow.getAllWindows().forEach((window) => {
+        window.webContents.send('language-changed', lang)
+    })
+    // Reconstruire le menu avec la nouvelle langue sélectionnée
+    createMenu()
+}
+
+// Handlers IPC pour la communication avec le renderer
+ipcMain.handle('change-language', (_event, lang: string) => {
+    changeLanguage(lang)
+})
+
+ipcMain.handle('get-language', () => {
+    return store.get('language') || 'en'
+})
+
 async function createWindow() {
     win = new BrowserWindow({
         title: 'EcoindexApp',
@@ -120,7 +231,10 @@ async function createWindow() {
     )
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+    createMenu()
+    createWindow()
+})
 
 app.on('window-all-closed', () => {
     win = null

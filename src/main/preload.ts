@@ -22,3 +22,18 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     },
     // You can expose other APTs for the renderer process here
 })
+
+// --------- Expose language API ---------
+contextBridge.exposeInMainWorld('electronAPI', {
+    changeLanguage: (lang: string) =>
+        ipcRenderer.invoke('change-language', lang),
+    getLanguage: () => ipcRenderer.invoke('get-language'),
+    onLanguageChanged: (callback: (lang: string) => void) => {
+        ipcRenderer.on('language-changed', (_event, lang: string) =>
+            callback(lang)
+        )
+        return () => {
+            ipcRenderer.removeAllListeners('language-changed')
+        }
+    },
+})

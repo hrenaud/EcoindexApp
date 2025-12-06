@@ -5,5 +5,12 @@
     "reset": "Réinitialiser",
     "title": "EcoindexApp",
     "welcome": "Bienvenue dans EcoindexApp ! Ceci est une application exemple construite avec Electron, React, Tailwind et Shadcn."
+  },
+  "language": {
+    "change": "Changer la langue",
+    "english": "Anglais",
+    "french": "Français",
+    "label": "Langue",
+    "view": "Affichage"
   }
 }
