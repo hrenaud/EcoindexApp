@@ -292,6 +292,36 @@ npm run format
 
 **Note:** Prettier est intégré avec ESLint via `eslint-config-prettier` pour éviter les conflits entre les deux outils. Les règles ESLint qui entrent en conflit avec Prettier sont automatiquement désactivées.
 
+### Formatage automatique au commit
+
+Le projet utilise **Husky** et **lint-staged** pour formater et linter automatiquement les fichiers modifiés avant chaque commit.
+
+**Configuration :**
+
+- **Husky** : Gère les Git hooks (hook `pre-commit`)
+- **lint-staged** : Exécute les commandes uniquement sur les fichiers modifiés (staged)
+
+**Comportement :**
+
+Quand vous faites un `git commit`, le hook pre-commit va automatiquement :
+
+1. **Pour les fichiers JS/TS/TSX** :
+    - Linter avec ESLint (`eslint --fix`)
+    - Formater avec Prettier (`prettier --write`)
+
+2. **Pour les fichiers JSON/MD/CSS** :
+    - Formater avec Prettier (`prettier --write`)
+
+Les fichiers sont formatés et ajoutés automatiquement au commit. Si ESLint trouve des erreurs non corrigeables automatiquement, le commit sera bloqué.
+
+**Désactiver temporairement le hook :**
+
+Si vous devez faire un commit sans formatage (déconseillé), utilisez :
+
+```bash
+git commit --no-verify
+```
+
 ### Fichiers ignorés
 
 Les fichiers suivants sont ignorés par Prettier (voir `.prettierignore`) :

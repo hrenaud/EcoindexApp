@@ -70,11 +70,14 @@
         "electron": "^39.2.5",
         "electron-installer-dmg": "^5.0.1",
         "eslint": "^9.39.1",
+        "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-react": "^7.37.3",
         "eslint-plugin-react-hooks": "^7.0.1",
         "globals": "^16.5.0",
         "husky": "^9.1.7",
+        "lint-staged": "^16.2.7",
         "postcss": "^8.4.49",
+        "prettier-plugin-tailwindcss": "^0.7.2",
         "tailwindcss": "^4.1.17",
         "typescript": "^5.7.2",
         "vite": "^7.2.6"
@@ -91,5 +94,14 @@
         "react-dom": "^19.2.1",
         "react-i18next": "^16.4.0",
         "tailwind-merge": "^3.4.0"
+    },
+    "lint-staged": {
+        "*.{js,jsx,ts,tsx}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,md,css,scss}": [
+            "prettier --write"
+        ]
     }
 }
