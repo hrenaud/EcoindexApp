@@ -1,21 +1,20 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config
 export default defineConfig({
-  build: {
-    lib: {
-      entry: 'src/main/preload.ts',
-      formats: ['cjs'],
-      fileName: () => 'preload.js',
+    build: {
+        lib: {
+            entry: 'src/main/preload.ts',
+            formats: ['cjs'],
+            fileName: () => 'preload.js',
+        },
+        rollupOptions: {
+            external: ['electron'],
+        },
     },
-    rollupOptions: {
-      external: ['electron'],
+    resolve: {
+        // Some libs that can run in both Node and Browser doesn't provide browser build
+        // So we need to manually specify the resolve conditions
+        conditions: ['node', 'default'],
     },
-  },
-  resolve: {
-    // Some libs that can run in both Node and Browser doesn't provide browser build
-    // So we need to manually specify the resolve conditions
-    conditions: ['node', 'default'],
-  },
-});
-
+})
