@@ -8,6 +8,8 @@
   "scripts": {
     "start": "electron-forge start",
     "package": "npm run lint && electron-forge package",
+    "premake": "npm run asar:pack:lib",
+    "asar:pack:lib": "asar pack ./lib ./src/extraResources/lib.asar",
     "make": "npm run lint && electron-forge make",
     "publish": "electron-forge publish",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
