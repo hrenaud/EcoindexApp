@@ -2,7 +2,13 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { app, BrowserWindow, Menu, ipcMain } from 'electron'
+import {
+    BrowserWindow,
+    Menu,
+    MenuItemConstructorOptions,
+    app,
+    ipcMain,
+} from 'electron'
 import log from 'electron-log'
 import Store from 'electron-store'
 
@@ -93,7 +99,7 @@ const store = new Store({
 function createMenu() {
     const currentLang = (store.get('language') as string) || 'en'
 
-    const template = [
+    const template: MenuItemConstructorOptions[] = [
         {
             label: process.platform === 'darwin' ? app.getName() : 'File',
             submenu: [
@@ -174,6 +180,7 @@ function createMenu() {
 
 // Fonction pour changer la langue
 function changeLanguage(lang: string) {
+    // Sauvegarder la langue dans le store (comme dans l'ancienne application)
     store.set('language', lang)
     // Notifier toutes les fenêtres
     BrowserWindow.getAllWindows().forEach((window) => {
@@ -190,6 +197,19 @@ ipcMain.handle('change-language', (_event, lang: string) => {
 
 ipcMain.handle('get-language', () => {
     return store.get('language') || 'en'
+})
+
+// Handlers IPC pour l'API store générique (comme dans l'ancienne application)
+ipcMain.handle('store-set', (_event, key: string, value: unknown) => {
+    store.set(key, value)
+})
+
+ipcMain.handle('store-get', (_event, key: string, defaultValue?: unknown) => {
+    return store.get(key, defaultValue)
+})
+
+ipcMain.handle('store-delete', (_event, key: string) => {
+    store.delete(key as any)
 })
 
 async function createWindow() {
@@ -232,7 +252,7 @@ async function createWindow() {
     // Handle errors
     win.webContents.on(
         'did-fail-load',
-        (event, errorCode, errorDescription) => {
+        (_event, errorCode, errorDescription) => {
             console.error('Failed to load:', errorCode, errorDescription)
         }
     )

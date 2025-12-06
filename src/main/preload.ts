@@ -37,3 +37,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
         }
     },
 })
+
+// --------- Expose store API (comme dans l'ancienne application) ---------
+contextBridge.exposeInMainWorld('store', {
+    set: (key: string, value: unknown) =>
+        ipcRenderer.invoke('store-set', key, value),
+    get: (key: string, defaultValue?: unknown) =>
+        ipcRenderer.invoke('store-get', key, defaultValue),
+    delete: (key: string) => ipcRenderer.invoke('store-delete', key),
+})

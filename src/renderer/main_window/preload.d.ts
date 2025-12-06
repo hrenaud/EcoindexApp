@@ -19,6 +19,11 @@ declare global {
             getLanguage: () => Promise<string>
             onLanguageChanged: (callback: (lang: string) => void) => () => void
         }
+        store: {
+            set: (key: string, value: unknown) => Promise<void>
+            get: (key: string, defaultValue?: unknown) => Promise<unknown>
+            delete: (key: string) => Promise<void>
+        }
     }
 }
 
