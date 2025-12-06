@@ -8,12 +8,11 @@
  * Ce script utilise hdiutil (outil natif macOS) pour créer un DMG.
  */
 
-import { basename, dirname } from 'node:path'
-import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
-
 import { execSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
+import { basename, dirname } from 'node:path'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const rootDir = join(__dirname, '..')

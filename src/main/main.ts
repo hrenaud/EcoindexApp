@@ -1,7 +1,8 @@
-import { app, BrowserWindow } from 'electron'
-import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import { app, BrowserWindow } from 'electron'
 
 const require = createRequire(import.meta.url)
 

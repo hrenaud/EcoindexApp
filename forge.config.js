@@ -1,17 +1,17 @@
-import { FuseV1Options, FuseVersion } from '@electron/fuses'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives'
-import { FusesPlugin } from '@electron-forge/plugin-fuses'
+import { FuseV1Options, FuseVersion } from '@electron/fuses'
 // import { MakerDMG } from '@electron-forge/maker-dmg'; // Désactivé : appdmg nécessite des binaires natifs incompatibles avec Node.js 22
 import { MakerDeb } from '@electron-forge/maker-deb'
 import { MakerRpm } from '@electron-forge/maker-rpm'
 import { MakerSquirrel } from '@electron-forge/maker-squirrel'
 import { MakerZIP } from '@electron-forge/maker-zip'
+import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives'
+import { FusesPlugin } from '@electron-forge/plugin-fuses'
 import { VitePlugin } from '@electron-forge/plugin-vite'
-import { fileURLToPath } from 'node:url'
 import { config as loadEnv } from 'dotenv'
-import path from 'node:path'
-import { readFileSync } from 'node:fs'
 
 // Charger les variables d'environnement depuis .env (seulement si le fichier existe)
 // Ne pas écraser les variables d'environnement déjà définies (comme dans GitHub Actions)
