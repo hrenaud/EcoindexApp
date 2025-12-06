@@ -20,7 +20,8 @@
     "version-packages": "changeset version",
     "release": "npm run build && changeset publish",
     "postinstall": "cd lib && npm ci",
-    "update-packages": "cd lib && rm -rf node_modules && npm i lighthouse@latest lighthouse-plugin-ecoindex-core@latest lighthouse-plugin-ecoindex-courses@latest --save --save-exact"
+    "update-packages": "cd lib && rm -rf node_modules && npm i lighthouse@latest lighthouse-plugin-ecoindex-core@latest lighthouse-plugin-ecoindex-courses@latest --save --save-exact",
+    "prepare": "husky"
   },
   "keywords": [
     "electron",
@@ -60,6 +61,7 @@
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
+    "husky": "^9.1.7",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.7.2",
