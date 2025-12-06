@@ -16,7 +16,9 @@
     "make:dmg": "npm run make && node scripts/create-dmg.js",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "npm run build && changeset publish"
+    "release": "npm run build && changeset publish",
+    "postinstall": "cd lib && npm ci",
+    "update-packages": "cd lib && rm -rf node_modules && npm i lighthouse@latest lighthouse-plugin-ecoindex-core@latest lighthouse-plugin-ecoindex-courses@latest --save --save-exact"
   },
   "keywords": [
     "electron",
