@@ -1,5 +1,19 @@
 # ecoindex-app
 
+## 0.1.16
+
+### Patch Changes
+
+- 7ce3b5e: add language switcher
+- 8c929e0: init electron-log
+- 310ab89: add i18n
+- 3a45146: add prettier
+- 67a881e: add accessibility lint check
+- fecd551: add lib
+- 7fff557: more of electron-store
+- e903350: add commitlint, eslint-plugin-import et @ecocode/eslint-plugin
+- 7d15e4a: Mise à jour de CONTRIBUTING.md pour clarifier le format exact de APPLE_IDENTITY
+
 ## 0.1.15
 
 ### Patch Changes
