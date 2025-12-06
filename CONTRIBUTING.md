@@ -342,6 +342,10 @@ npm run lint:fix
 - `eslint-plugin-import` : Validation et tri automatique des imports
     - Les imports sont automatiquement triés par ordre alphabétique
     - Les groupes d'imports sont séparés par des lignes vides (builtin, external, internal, etc.)
+- `eslint-plugin-jsx-a11y` : Règles d'accessibilité pour JSX
+    - Détecte les problèmes d'accessibilité dans les composants React
+    - Vérifie les attributs ARIA, les rôles, les labels, etc.
+    - Exception pour les composants UI réutilisables dans `src/components/ui/**` qui propagent children
 - `@typescript-eslint/eslint-plugin` : Règles TypeScript
 - `eslint-config-prettier` : Désactive les règles ESLint qui entrent en conflit avec Prettier
 
