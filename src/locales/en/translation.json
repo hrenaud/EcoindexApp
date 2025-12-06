@@ -1,15 +1,9 @@
 {
-    "app": {
-        "count": "Count is {{count}}",
-        "description": "An application to measures the ecological impact of a website with LightHouse and Ecoindex.",
-        "reset": "Reset",
-        "title": "EcoindexApp",
-        "welcome": "Welcome to EcoindexApp! This is a sample application built with Electron, React, Tailwind, and Shadcn."
-    },
-    "app.count_one": "app.count_one",
-    "app.count_other": "to translate",
-    "app.description": "app.description",
-    "app.reset": "app.reset",
-    "app.title": "app.title",
-    "app.welcome": "app.welcome"
+  "app": {
+    "count": "Count is {{count}}",
+    "description": "An application to measures the ecological impact of a website with LightHouse and Ecoindex.",
+    "reset": "Reset",
+    "title": "EcoindexApp",
+    "welcome": "Welcome to EcoindexApp! This is a sample application built with Electron, React, Tailwind, and Shadcn."
+  }
 }
