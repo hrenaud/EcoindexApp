@@ -45,5 +45,36 @@
     "fatal": {
       "error": "🚫 Erreur fatale !"
     }
+  },
+  "menu": {
+    "about": "À propos de",
+    "hideApp": "Masquer l'application",
+    "hideOthers": "Masquer les autres applications",
+    "showAll": "Afficher tout",
+    "quit": "Quitter",
+    "file": "&Fichier",
+    "edit": "Éditer",
+    "undo": "Annuler",
+    "redo": "Refaire",
+    "cut": "Couper",
+    "copy": "Copier",
+    "paste": "Coller",
+    "pasteAndMatchStyle": "Coller et adapter le style",
+    "delete": "Supprimer",
+    "selectAll": "Tout sélectionner",
+    "speech": "Parole",
+    "startSpeaking": "Commencer à parler",
+    "stopSpeaking": "Arrêter de parler",
+    "view": "Affichage",
+    "reload": "Recharger",
+    "forceReload": "Forcer le rechargement",
+    "fullScreen": "Plein écran",
+    "minimize": "Réduire",
+    "toggleDeveloperTools": "Basculer les outils de développement",
+    "language": "Langue",
+    "help": "Aide",
+    "learnMoreAbout": "En apprendre plus sur",
+    "log": "Journal...",
+    "openSplashWindow": "Ouvrir la fenêtre d'accueil..."
   }
 }

@@ -45,5 +45,36 @@
     "fatal": {
       "error": "🚫 fatal error!"
     }
+  },
+  "menu": {
+    "about": "About",
+    "hideApp": "Hide App",
+    "hideOthers": "Hide Others",
+    "showAll": "Show All",
+    "quit": "Quit",
+    "file": "&File",
+    "edit": "Edit",
+    "undo": "Undo",
+    "redo": "Redo",
+    "cut": "Cut",
+    "copy": "Copy",
+    "paste": "Paste",
+    "pasteAndMatchStyle": "Paste and match style",
+    "delete": "Delete",
+    "selectAll": "Select all",
+    "speech": "Speech",
+    "startSpeaking": "Start speaking",
+    "stopSpeaking": "Stop speaking",
+    "view": "View",
+    "reload": "Reload",
+    "forceReload": "Force reload",
+    "fullScreen": "Full Screen",
+    "minimize": "Minimize",
+    "toggleDeveloperTools": "Toggle Developer Tools",
+    "language": "Language",
+    "help": "Help",
+    "learnMoreAbout": "Learn More about",
+    "log": "Log...",
+    "openSplashWindow": "Open splash window..."
   }
 }

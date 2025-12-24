@@ -2,17 +2,13 @@ import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import {
-    BrowserWindow,
-    Menu,
-    MenuItemConstructorOptions,
-    app,
-    ipcMain,
-} from 'electron'
+import { BrowserWindow, app, ipcMain } from 'electron'
 import log from 'electron-log'
 import Store from 'electron-store'
 import { setMainWindow } from './memory'
 import { initialization } from './handlers/Initalization'
+import { buildMenu } from './menus/menuFactory'
+import i18n, { initializeI18n } from '../configs/i18next.config'
 
 // Configuration de electron-log
 log.initialize()
@@ -116,99 +112,20 @@ const store = new Store({
     },
 })
 
-// Fonction pour créer le menu avec le sélecteur de langue
-function createMenu() {
-    const currentLang = (store.get('language') as string) || 'en'
-
-    const template: MenuItemConstructorOptions[] = [
-        {
-            label: process.platform === 'darwin' ? app.getName() : 'File',
-            submenu: [
-                {
-                    role: 'quit',
-                },
-            ],
-        },
-        {
-            label: 'View',
-            submenu: [
-                {
-                    label: 'Language',
-                    submenu: [
-                        {
-                            label: 'Français',
-                            type: 'radio',
-                            checked: currentLang === 'fr',
-                            click: () => changeLanguage('fr'),
-                        },
-                        {
-                            label: 'English',
-                            type: 'radio',
-                            checked: currentLang === 'en',
-                            click: () => changeLanguage('en'),
-                        },
-                    ],
-                },
-                { type: 'separator' },
-                {
-                    role: 'reload',
-                },
-                {
-                    role: 'forceReload',
-                },
-                {
-                    role: 'toggleDevTools',
-                },
-                { type: 'separator' },
-                {
-                    role: 'resetZoom',
-                },
-                {
-                    role: 'zoomIn',
-                },
-                {
-                    role: 'zoomOut',
-                },
-                { type: 'separator' },
-                {
-                    role: 'togglefullscreen',
-                },
-            ],
-        },
-    ]
-
-    // Sur macOS, ajouter le menu standard
-    if (process.platform === 'darwin') {
-        template.unshift({
-            label: app.getName(),
-            submenu: [
-                { role: 'about' },
-                { type: 'separator' },
-                { role: 'services' },
-                { type: 'separator' },
-                { role: 'hide' },
-                { role: 'hideOthers' },
-                { role: 'unhide' },
-                { type: 'separator' },
-                { role: 'quit' },
-            ],
-        })
-    }
-
-    const menu = Menu.buildFromTemplate(template)
-    Menu.setApplicationMenu(menu)
-}
-
 // Fonction pour changer la langue
 function changeLanguage(lang: string) {
-    // Sauvegarder la langue dans le store (comme dans l'ancienne application)
+    // Sauvegarder la langue dans le store
     store.set('language', lang)
+    // Changer la langue dans i18next
+    i18n.changeLanguage(lang)
     // Notifier toutes les fenêtres
     BrowserWindow.getAllWindows().forEach((window) => {
         window.webContents.send('language-changed', lang)
     })
     // Reconstruire le menu avec la nouvelle langue sélectionnée
-    createMenu()
+    if (win) {
+        buildMenu(app, win, i18n)
+    }
 }
 
 // Handlers IPC pour la communication avec le renderer
@@ -320,9 +237,15 @@ async function createWindow() {
     )
 }
 
-app.whenReady().then(() => {
-    createMenu()
-    createWindow()
+app.whenReady().then(async () => {
+    // Initialiser i18next avant de créer le menu
+    await initializeI18n()
+    // Créer la fenêtre d'abord pour avoir mainWindow disponible
+    await createWindow()
+    // Créer le menu après que la fenêtre soit créée
+    if (win) {
+        buildMenu(app, win, i18n)
+    }
 })
 
 app.on('window-all-closed', () => {
