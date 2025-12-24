@@ -15,7 +15,7 @@ import extractAsarLib from './HandleExtractAsarLib'
 import { getMainLog } from '../main'
 import { getMainWindow } from '../memory'
 import { handleSplashScreen } from './HandleSplashScreen'
-import i18n from '../../configs/i18next.config'
+import i18n, { initializeI18n } from '../../configs/i18next.config'
 import { initGetHomeDir } from './initHandlers/getHomeDir'
 import { initGetWorkDir } from './initHandlers/getWorkDir'
 import { initIsNodeInstalled } from './initHandlers/IsNodeInstalled'
@@ -67,7 +67,18 @@ export const initialization = async (
     const initializedDatas: initializedDatas = {}
 
     mainLog.info(`forceInitialisation`, forceInitialisation)
+    console.log(
+        'Initialization function called, forceInitialisation:',
+        forceInitialisation
+    )
     try {
+        // S'assurer que i18next est initialisé et que les traductions sont chargées
+        mainLog.debug('Initializing i18next...')
+        console.log('Initializing i18next...')
+        await initializeI18n()
+        mainLog.debug('i18next initialized successfully')
+        console.log('i18next initialized successfully')
+
         const nbsteps = 9
         const steps = isDarwin ? nbsteps : nbsteps + 1
         let currentStep = 1
@@ -379,7 +390,7 @@ export const initialization = async (
 
         const isReady = forceAppReady || readInitalizedDatas(initializedDatas)
         if (isReady) {
-            // TODO
+            mainLog.debug('Application initialized successfully')
             store.set(storeConstants.APP_INSTALLED_ONCE, true)
             sendInitializationMessage({
                 type: 'data',

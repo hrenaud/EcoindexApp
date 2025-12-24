@@ -1,4 +1,4 @@
-import { IpcMainEvent, IpcMainInvokeEvent, utilityProcess } from 'electron'
+import { IpcMainEvent, IpcMainInvokeEvent, utilityProcess, app } from 'electron'
 
 import { ConfigData } from '../../../class/ConfigData'
 import { _sendMessageToFrontConsole } from '../../utils/SendMessageToFrontConsole'
@@ -24,20 +24,48 @@ export const initPuppeteerBrowserIsInstalled = async (
     try {
         await new Promise<void>((resolve, reject) => {
             mainLog.debug('Starting utility process...')
-            const pathToScript =
-                process.env['WEBPACK_SERVE'] === 'true'
-                    ? path.join(
-                          __dirname,
-                          '..',
-                          '..',
-                          'lib',
-                          'browser_isInstalled.mjs'
-                      )
-                    : path.join(
-                          process.resourcesPath,
-                          process.platform === 'win32' ? 'lib' : 'lib.asar',
-                          'browser_isInstalled.mjs'
-                      )
+            // Déterminer le chemin du script
+            // En développement (non packagé), utiliser le dossier lib du projet
+            // En production, utiliser process.resourcesPath (qui pointe vers les ressources de l'app)
+            let pathToScript: string
+            if (!app.isPackaged || process.env['WEBPACK_SERVE'] === 'true') {
+                // En développement : utiliser le dossier lib du projet
+                pathToScript = path.join(
+                    process.cwd(),
+                    'lib',
+                    'browser_isInstalled.mjs'
+                )
+                mainLog.debug(`Using development path: ${pathToScript}`)
+            } else if (process.resourcesPath) {
+                // En production packagée : utiliser process.resourcesPath
+                if (process.platform === 'win32') {
+                    // Sur Windows, lib est extrait
+                    pathToScript = path.join(
+                        process.resourcesPath,
+                        '..',
+                        'lib',
+                        'browser_isInstalled.mjs'
+                    )
+                } else {
+                    // Sur macOS/Linux, utiliser lib.asar
+                    pathToScript = path.join(
+                        process.resourcesPath,
+                        'lib.asar',
+                        'browser_isInstalled.mjs'
+                    )
+                }
+                mainLog.debug(`Using production path: ${pathToScript}`)
+            } else {
+                // Fallback : utiliser le dossier lib du projet
+                pathToScript = path.join(
+                    process.cwd(),
+                    'lib',
+                    'browser_isInstalled.mjs'
+                )
+                mainLog.warn(
+                    `process.resourcesPath not available, using fallback: ${pathToScript}`
+                )
+            }
             // pathToScript = path.join(__dirname, '..', '..', 'scripts', 'browser_isInstalled.ts')
             // pathToScript = process.env['WEBPACK_SERVE'] === 'true'
             //         ? path.join(__dirname, '..', 'scripts', 'browser_isInstalled.mjs')

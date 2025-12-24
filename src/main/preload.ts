@@ -46,3 +46,33 @@ contextBridge.exposeInMainWorld('store', {
         ipcRenderer.invoke('store-get', key, defaultValue),
     delete: (key: string) => ipcRenderer.invoke('store-delete', key),
 })
+
+// --------- Expose initialization API ---------
+contextBridge.exposeInMainWorld('initialisationAPI', {
+    // Front → Main: Lancer l'initialisation (pour compatibilité, mais maintenant lancée automatiquement)
+    initializeApplication: (forceInitialisation: boolean) =>
+        ipcRenderer.invoke('initialization-app', forceInitialisation),
+    // Main → Front: Écouter les messages d'initialisation
+    sendInitializationMessages: (callback: (message: any) => void) => {
+        ipcRenderer.on('initialization-messages', (_event, message) =>
+            callback(message)
+        )
+        return () => {
+            ipcRenderer.removeAllListeners('initialization-messages')
+        }
+    },
+    // Main → Front: Écouter les données de configuration
+    sendConfigDatasToFront: (callback: (data: any) => void) => {
+        // Écouter à la fois initialization-datas et host-informations-back
+        const handler1 = (_event: any, data: any) => callback(data)
+        const handler2 = (_event: any, data: any) => callback(data)
+
+        ipcRenderer.on('initialization-datas', handler1)
+        ipcRenderer.on('host-informations-back', handler2)
+
+        return () => {
+            ipcRenderer.removeAllListeners('initialization-datas')
+            ipcRenderer.removeAllListeners('host-informations-back')
+        }
+    },
+})

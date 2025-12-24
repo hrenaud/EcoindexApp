@@ -12,5 +12,38 @@
     "french": "Français",
     "label": "Langue",
     "view": "Affichage"
+  },
+  "initialization": {
+    "title": "Démarrage de l'application",
+    "started": "Vérifications...",
+    "windows": {
+      "unpacking": "Extraction des fichiers (cela peut prendre quelques secondes et faire freezé l'application)..."
+    },
+    "dir": {
+      "home": "Recherche du dossier utilisateur...",
+      "work": "Recherche du dossier de travail..."
+    },
+    "browser-puppeteer": {
+      "isInstalled": "Vérification si le navigateur interne est déjà installé...",
+      "installation": "Installation du navigateur interne",
+      "verification": "Vérification de la bonne installation du navigateur interne...",
+      "error": "L'installation du navigateur à retourné une erreur. L'application ne peut pas démarrer 🚫"
+    },
+    "finished": "Installation terminée avec succès 🎉",
+    "title-error": "L'installation est en erreur !",
+    "node": {
+      "check": "Vérification de la présence de NodeJS sur l'ordinateur",
+      "version": "Vérification de la version de NodeJS présente sur l'ordinateur",
+      "install": {
+        "Label": "Lien de téléchargement"
+      },
+      "error": {
+        "notinstalled": "NodeJS n'est pas installé sur votre ordinateur !",
+        "wrongversion": "Votre version de NodeJS est obsolète"
+      }
+    },
+    "fatal": {
+      "error": "🚫 Erreur fatale !"
+    }
   }
 }

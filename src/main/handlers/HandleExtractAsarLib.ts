@@ -8,6 +8,15 @@ import path from 'path'
 const extractAsarLib = async () => {
     const mainLog = getMainLog().scope('main/extract-asar-lib')
     mainLog.info(`Extract ASAR file for Windows (hack)`)
+
+    // En développement, process.resourcesPath n'existe pas, on skip
+    if (!process.resourcesPath) {
+        mainLog.info(
+            `Extract ASAR file skipped (development mode, process.resourcesPath not available)`
+        )
+        return
+    }
+
     const libPath = path.join(process.resourcesPath, 'lib')
     if (fs.existsSync(path.join(libPath, 'package.json'))) {
         mainLog.info(`Extract ASAR file skipped (lib folder already exists)`)

@@ -1,5 +1,8 @@
 import { IpcRendererEvent } from 'electron'
 
+import type { ConfigData } from '@/class/ConfigData'
+import type { InitalizationMessage } from '@/types'
+
 declare global {
     interface Window {
         ipcRenderer: {
@@ -23,6 +26,17 @@ declare global {
             set: (key: string, value: unknown) => Promise<void>
             get: (key: string, defaultValue?: unknown) => Promise<unknown>
             delete: (key: string) => Promise<void>
+        }
+        initialisationAPI: {
+            initializeApplication: (
+                forceInitialisation: boolean
+            ) => Promise<boolean>
+            sendInitializationMessages: (
+                callback: (message: InitalizationMessage) => void
+            ) => () => void
+            sendConfigDatasToFront: (
+                callback: (data: ConfigData) => void
+            ) => () => void
         }
     }
 }
