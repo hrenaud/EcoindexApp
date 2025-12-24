@@ -11,12 +11,17 @@ import {
 } from 'electron'
 import log from 'electron-log'
 import Store from 'electron-store'
+import { setMainWindow } from './memory'
 
 // Configuration de electron-log
 log.initialize()
 log.transports.file.level = 'info'
 log.transports.console.level =
     process.env.NODE_ENV === 'development' ? 'debug' : 'info'
+
+export const getMainLog = () => {
+    return log
+}
 
 const require = createRequire(import.meta.url)
 
@@ -227,6 +232,7 @@ async function createWindow() {
             contextIsolation: true,
         },
     })
+    setMainWindow(win)
 
     // In development, always try to load from Vite dev server first
     if (VITE_DEV_SERVER_URL) {
