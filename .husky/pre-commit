@@ -1,1 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Add node/npm to PATH if not already present
+# Try to find node in common locations
+if ! command -v npx >/dev/null 2>&1; then
+    # Try to get node path from npm config or common locations
+    NODE_PATH=$(command -v node 2>/dev/null | xargs dirname 2>/dev/null)
+    if [ -n "$NODE_PATH" ]; then
+        export PATH="$PATH:$NODE_PATH"
+    fi
+fi
+
 npx lint-staged
