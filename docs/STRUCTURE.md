@@ -141,9 +141,10 @@ EcoindexApp-2025/
 
 **Composants React réutilisables**.
 
+- `DarkModeSwitcher.tsx` : Sélecteur de mode sombre/clair
 - `InformationPopin.tsx` : Popin modal pour afficher les messages d'initialisation
 - `LanguageSwitcher.tsx` : Sélecteur de langue
-- `ui/` : Composants Shadcn/ui (button, card, progress, etc.)
+- `ui/` : Composants Shadcn/ui (button, card, progress, switch, etc.)
 
 ### `src/configs/`
 

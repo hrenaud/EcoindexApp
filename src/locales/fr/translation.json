@@ -87,5 +87,6 @@
     "restart": "Redémarrer",
     "later": "Plus tard",
     "linuxNewVersionAvailable": "Une nouvelle version de l'application est disponible ({{version}}), voulez-vous la télécharger ?"
-  }
+  },
+  "Dark mode switch": "Dark mode selecteur"
 }

@@ -87,5 +87,6 @@
     "restart": "Restart",
     "later": "Later",
     "linuxNewVersionAvailable": "A new version of the app is available ({{version}}), do you want to download it?"
-  }
+  },
+  "Dark mode switch": "Dark mode switch"
 }

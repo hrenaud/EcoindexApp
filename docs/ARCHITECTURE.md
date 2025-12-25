@@ -64,6 +64,30 @@ Composant de popin modal pour afficher les messages d'initialisation avec :
 - `@radix-ui/react-progress` : Barre de progression
 - `@radix-ui/react-icons` : Icônes (ReloadIcon pour le spinner)
 
+### DarkModeSwitcher
+
+**Fichier** : `src/components/DarkModeSwitcher.tsx`
+
+Composant de basculement entre mode clair et mode sombre avec :
+
+- Détection automatique du mode système via `matchMedia('prefers-color-scheme: dark')`
+- Écoute des changements de préférence système
+- Application/retrait de la classe `dark` sur l'élément `<html>`
+- Icônes `Sun` et `SunMoon` de `lucide-react`
+- Switch basé sur `@radix-ui/react-switch`
+
+**Fonctionnement** :
+
+1. Au montage, détecte le mode système et initialise l'état
+2. Écoute les changements de préférence système
+3. Applique la classe `dark` sur `<html>` lorsque le mode sombre est activé
+4. Permet le basculement manuel via le switch
+
+**Dépendances** :
+
+- `@radix-ui/react-switch` : Composant switch
+- `lucide-react` : Icônes Sun et SunMoon
+
 ## Structure du projet
 
 ```
@@ -95,10 +119,12 @@ EcoindexApp-2025/
 │   │       ├── index.css        # Styles globaux
 │   │       └── preload.d.ts     # Types TypeScript pour preload
 │   ├── components/              # Composants React
+│   │   ├── DarkModeSwitcher.tsx # Sélecteur de mode sombre
 │   │   ├── LanguageSwitcher.tsx
 │   │   └── ui/                  # Composants Shadcn/ui
 │   │       ├── button.tsx
-│   │       └── card.tsx
+│   │       ├── card.tsx
+│   │       └── switch.tsx       # Composant switch
 │   ├── configs/                 # Configurations
 │   │   ├── i18next.config.ts    # i18n pour main process
 │   │   └── i18nResources.ts     # i18n pour renderer process

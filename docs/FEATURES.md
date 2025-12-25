@@ -36,7 +36,36 @@ L'application effectue une série de vérifications et d'installations au démar
 - **Liens d'aide** : Affichage de liens vers les ressources nécessaires (ex: téléchargement Node.js)
 - **Logs détaillés** : Toutes les étapes sont loggées via `electron-log`
 
-## 2. Système d'internationalisation (i18n)
+## 2. Mode sombre (Dark Mode)
+
+L'application supporte le mode sombre avec détection automatique du mode système.
+
+### Fonctionnalités
+
+- **Détection automatique** : Détecte le mode système au démarrage via `matchMedia('prefers-color-scheme: dark')`
+- **Écoute des changements** : Se met à jour automatiquement si l'utilisateur change le mode système
+- **Basculement manuel** : Permet de basculer manuellement entre mode clair et sombre via un switch
+- **Persistance visuelle** : La classe `dark` est appliquée sur l'élément `<html>` pour activer les styles sombres
+
+### Composant DarkModeSwitcher
+
+**Fichier** : `src/components/DarkModeSwitcher.tsx`
+
+Le composant affiche :
+
+- Une icône `Sun` (mode clair)
+- Un switch pour basculer entre les modes
+- Une icône `SunMoon` (mode sombre)
+
+**Positionnement** : Par défaut positionné en `absolute left-2 top-2` dans l'interface principale.
+
+### Configuration Tailwind
+
+Le mode sombre utilise la configuration `darkMode: 'selector'` de Tailwind CSS, ce qui signifie que les styles sombres sont activés via la classe `.dark` sur un élément parent (ici `<html>`).
+
+Les variables CSS définies dans `:root` et `.dark` permettent un changement de thème fluide sans rechargement de page.
+
+## 3. Système d'internationalisation (i18n)
 
 L'application supporte deux langues :
 

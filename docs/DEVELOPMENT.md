@@ -288,11 +288,51 @@ Les couleurs `ecoindex-green` et `ecoindex-red` sont disponibles avec toutes leu
 
 ### Mode sombre
 
-Le mode sombre est géré via la classe `.dark` sur un élément parent. Les variables CSS s'adaptent automatiquement :
+Le mode sombre est géré via la classe `.dark` sur l'élément `<html>`. Les variables CSS s'adaptent automatiquement.
+
+#### Utilisation du composant DarkModeSwitcher
+
+Le composant `DarkModeSwitcher` est déjà intégré dans `App.tsx`. Pour l'utiliser ailleurs :
 
 ```tsx
-<div className="dark">{/* Contenu en mode sombre */}</div>
+import { DarkModeSwitcher } from '@/components/DarkModeSwitcher'
+
+// Utilisation basique
+<DarkModeSwitcher />
+
+// Avec positionnement personnalisé
+<DarkModeSwitcher
+    className="absolute left-2 top-2 z-20 flex gap-2"
+    visible={true}
+/>
 ```
+
+**Props disponibles** :
+
+- `visible` : Affiche ou masque le composant (défaut: `true`)
+- `className` : Classes CSS personnalisées
+- Toutes les props HTML standard pour un `<div>`
+
+#### Fonctionnement interne
+
+1. **Initialisation** : Détecte le mode système au montage
+2. **Écoute** : Écoute les changements de préférence système
+3. **Application** : Applique/retire la classe `dark` sur `<html>` selon l'état
+4. **Basculement** : Permet le basculement manuel via le switch
+
+#### Styles en mode sombre
+
+Les styles sombres sont définis dans `src/renderer/main_window/index.css` :
+
+```css
+.dark {
+    --background: 20 14.3% 4.1%;
+    --foreground: 0 0% 95%;
+    /* ... autres variables ... */
+}
+```
+
+Tous les composants utilisant les variables CSS s'adaptent automatiquement au mode sombre.
 
 ### Ajout de nouveaux styles
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { DarkModeSwitcher } from '@/components/DarkModeSwitcher'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { Button } from '@/components/ui/button'
 import {
@@ -98,9 +99,13 @@ function App() {
 
     return (
         <>
-            <div className="bg-background min-h-screen p-8">
+            <div className="min-h-screen bg-background p-8">
                 <div className="mx-auto max-w-4xl space-y-8">
-                    <div className="flex justify-end">
+                    <div className="relative flex justify-end">
+                        <DarkModeSwitcher
+                            title={t('Dark mode switch')}
+                            className="absolute left-2 top-2 z-20 flex gap-2"
+                        />
                         <LanguageSwitcher />
                     </div>
                     <Card>
@@ -151,7 +156,7 @@ function App() {
             >
                 <div
                     className={cn(
-                        'text-sm break-words whitespace-pre-line',
+                        'whitespace-pre-line break-words text-sm',
                         !informationPopinIsAlert
                             ? 'italic'
                             : 'font-bold !text-red-500'
