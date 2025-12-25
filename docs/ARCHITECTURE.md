@@ -6,7 +6,7 @@
 
 - **React 19.2.1** : Framework UI
 - **TypeScript 5.7.2** : Typage statique
-- **Tailwind CSS 4.1.17** : Framework CSS utility-first
+- **Tailwind CSS 3.4.17** : Framework CSS utility-first
 - **Shadcn/ui** : Composants React de qualité
 - **Vite 7.2.6** : Build tool et dev server
 - **react-i18next** : Internationalisation React
@@ -243,3 +243,83 @@ Les scripts dans `lib/` sont exécutés via `utilityProcess` :
 - `electron-log` pour les logs structurés
 - Fichier de log : `~/Library/Logs/ecoindex-app/main.log` (macOS)
 - Niveau debug activé pour le développement
+
+## Configuration Tailwind CSS
+
+### Version et plugins
+
+L'application utilise **Tailwind CSS v3.4.17** avec les plugins suivants :
+
+- `@tailwindcss/typography` : Styles typographiques pour le contenu markdown
+- `@tailwindcss/forms` : Styles par défaut pour les formulaires
+- `tailwindcss-animate` : Animations pour les composants (accordion, etc.)
+
+### Couleurs personnalisées
+
+Deux palettes de couleurs personnalisées sont définies dans `tailwind.config.js` :
+
+#### `ecoindex-green`
+
+Palette verte principale de l'application (50 à 950) :
+
+- `DEFAULT` : `#008060` (couleur principale)
+- Utilisée pour les boutons, liens, et éléments de marque
+
+#### `ecoindex-red`
+
+Palette rouge pour les erreurs et actions destructives (50 à 950) :
+
+- `DEFAULT` : `#dd0055` (couleur principale)
+- Utilisée pour les messages d'erreur et boutons destructifs
+
+### Configuration du thème
+
+- **darkMode** : `'selector'` (basé sur la classe `.dark`)
+- **container** : Centré avec padding `2rem` et breakpoint `2xl` à `1400px`
+- **borderRadius** : Variables CSS (`--radius`) pour cohérence
+- **Animations** : `accordion-down` et `accordion-up` pour les composants accordion
+
+### Styles personnalisés
+
+Le fichier `src/renderer/main_window/index.css` contient des styles personnalisés dans `@layer components` :
+
+#### Classes de boutons
+
+- `.btn` : Style de base pour tous les boutons
+- `.btn-green` : Bouton vert (style principal)
+- `.btn-red` : Bouton rouge (style destructif)
+- `.btn-green-outlined` : Bouton vert avec bordure
+- `.btn-square` : Bouton carré
+- `.btn-small` : Bouton de petite taille
+
+#### Classes utilitaires
+
+- `.echo` : Style pour les zones de code/console
+- `.logo-ecoindex` : Style pour le logo Ecoindex
+- `.mandatory` : Indicateur visuel pour les champs obligatoires
+- `.tooltip` : Style pour les tooltips
+
+#### Styles de formulaires
+
+Styles spécifiques pour `#json-form` et `#simple-form` :
+
+- Labels, inputs, checkboxes
+- Fieldsets et legends
+- Details/summary pour les sections collapsibles
+
+### Variables CSS
+
+Les couleurs du thème sont définies via des variables CSS dans `:root` et `.dark` :
+
+- `--background`, `--foreground`
+- `--primary`, `--primary-foreground`
+- `--secondary`, `--secondary-foreground`
+- `--muted`, `--muted-foreground`
+- `--accent`, `--accent-foreground`
+- `--destructive`, `--destructive-foreground`
+- `--border`, `--input`, `--ring`
+- `--card`, `--popover`
+- `--chart-1` à `--chart-5`
+- `--radius` : Rayon de bordure par défaut
+
+Ces variables permettent un changement de thème dynamique (light/dark) et une cohérence visuelle.

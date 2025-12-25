@@ -238,6 +238,80 @@ Les scripts dans `lib/` sont exécutés via `utilityProcess`. Le chemin doit êt
 
 Les variables d'environnement sont chargées depuis `.env` via `dotenv`. Voir [BUILD.md](BUILD.md) pour la liste complète.
 
+## Styling avec Tailwind CSS
+
+### Utilisation des classes
+
+L'application utilise Tailwind CSS v3 avec des classes utilitaires. Exemples :
+
+```tsx
+// Bouton vert principal
+<button className="btn btn-green">Action</button>
+
+// Bouton rouge destructif
+<button className="btn btn-red">Supprimer</button>
+
+// Utilisation des couleurs personnalisées
+<div className="bg-ecoindex-green-500 text-ecoindex-green-950">
+  Contenu
+</div>
+```
+
+### Classes personnalisées disponibles
+
+#### Boutons
+
+- `btn` : Style de base
+- `btn-green` : Bouton vert principal
+- `btn-red` : Bouton rouge destructif
+- `btn-green-outlined` : Bouton vert avec bordure
+- `btn-square` : Bouton carré
+- `btn-small` : Bouton de petite taille
+
+#### Utilitaires
+
+- `echo` : Zone de code/console
+- `logo-ecoindex` : Logo Ecoindex
+- `mandatory` : Indicateur de champ obligatoire
+- `tooltip` : Tooltip personnalisé
+
+### Couleurs personnalisées
+
+Les couleurs `ecoindex-green` et `ecoindex-red` sont disponibles avec toutes leurs nuances (50, 100, 200, ..., 950) :
+
+```tsx
+// Exemples
+<div className="bg-ecoindex-green-500">...</div>
+<div className="text-ecoindex-red-600">...</div>
+<div className="border-ecoindex-green-800">...</div>
+```
+
+### Mode sombre
+
+Le mode sombre est géré via la classe `.dark` sur un élément parent. Les variables CSS s'adaptent automatiquement :
+
+```tsx
+<div className="dark">{/* Contenu en mode sombre */}</div>
+```
+
+### Ajout de nouveaux styles
+
+Pour ajouter de nouveaux styles personnalisés :
+
+1. **Styles utilitaires** : Ajouter dans `@layer components` dans `src/renderer/main_window/index.css`
+2. **Nouvelles couleurs** : Ajouter dans `theme.extend.colors` dans `tailwind.config.js`
+3. **Nouvelles animations** : Ajouter dans `theme.extend.animation` dans `tailwind.config.js`
+
+**Exemple** :
+
+```css
+@layer components {
+    .mon-style-personnalise {
+        @apply flex items-center gap-2 rounded-lg px-4 py-2;
+    }
+}
+```
+
 ## Dependencies
 
 ### Dépendances principales

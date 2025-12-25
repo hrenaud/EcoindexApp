@@ -102,6 +102,8 @@ EcoindexApp-2025/
 ├── package.json                  # Dépendances et scripts
 ├── tsconfig.json                 # Configuration TypeScript
 ├── tsconfig.node.json            # Configuration TypeScript (Node)
+├── tailwind.config.js            # Configuration Tailwind CSS
+├── postcss.config.js             # Configuration PostCSS
 └── README.md                     # README principal
 ```
 
@@ -132,6 +134,7 @@ EcoindexApp-2025/
 
 - `main.tsx` : Point d'entrée React, initialisation i18n
 - `App.tsx` : Composant principal de l'application
+- `index.css` : Styles globaux Tailwind CSS avec styles personnalisés
 - `preload.d.ts` : Types TypeScript pour les APIs exposées
 
 ### `src/components/`
@@ -148,6 +151,13 @@ EcoindexApp-2025/
 
 - `i18next.config.ts` : Configuration i18n pour le main process (avec `i18next-fs-backend`)
 - `i18nResources.ts` : Configuration i18n pour le renderer process (avec `i18next-resources-to-backend`)
+
+### Fichiers de configuration racine
+
+**Configurations du projet** :
+
+- `tailwind.config.js` : Configuration Tailwind CSS (couleurs personnalisées, plugins, thème)
+- `postcss.config.js` : Configuration PostCSS (plugins Tailwind et Autoprefixer)
 
 ### `src/locales/`
 
