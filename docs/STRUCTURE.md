@@ -31,10 +31,12 @@ EcoindexApp-2025/
 │   │       ├── index.css         # Styles globaux
 │   │       └── preload.d.ts      # Types TypeScript pour preload
 │   ├── components/               # Composants React
+│   │   ├── InformationPopin.tsx  # Popin d'initialisation
 │   │   ├── LanguageSwitcher.tsx # Sélecteur de langue
 │   │   └── ui/                  # Composants Shadcn/ui
 │   │       ├── button.tsx
-│   │       └── card.tsx
+│   │       ├── card.tsx
+│   │       └── progress.tsx     # Barre de progression
 │   ├── configs/                  # Configurations
 │   │   ├── i18next.config.ts    # i18n pour main process
 │   │   └── i18nResources.ts     # i18n pour renderer process
@@ -136,8 +138,9 @@ EcoindexApp-2025/
 
 **Composants React réutilisables**.
 
+- `InformationPopin.tsx` : Popin modal pour afficher les messages d'initialisation
 - `LanguageSwitcher.tsx` : Sélecteur de langue
-- `ui/` : Composants Shadcn/ui (button, card, etc.)
+- `ui/` : Composants Shadcn/ui (button, card, progress, etc.)
 
 ### `src/configs/`
 

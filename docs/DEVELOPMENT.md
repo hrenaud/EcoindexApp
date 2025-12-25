@@ -207,6 +207,26 @@ await initializeI18n()
 // Maintenant on peut utiliser i18n.t()
 ```
 
+**Important** : La langue doit être chargée depuis le store **avant** l'initialisation pour garantir que tous les messages sont traduits :
+
+```typescript
+// Dans main.ts
+await initializeI18n()
+const savedLanguage = (store.get('language') as string) || 'en'
+await i18n.changeLanguage(savedLanguage)
+// Maintenant l'initialisation peut commencer avec les bonnes traductions
+```
+
+### Popin d'initialisation
+
+Le composant `InformationPopin` affiche les messages d'initialisation dans le renderer. Pour l'utiliser :
+
+1. **Écouter les messages** via `window.initialisationAPI.sendInitializationMessages()`
+2. **Gérer les états** : `display`, `title`, `message`, `progress`, `isAlert`, etc.
+3. **Afficher le composant** dans le JSX avec les props appropriées
+
+**Exemple d'utilisation** : Voir `src/renderer/main_window/App.tsx` pour une implémentation complète.
+
 ### Scripts utilitaires
 
 Les scripts dans `lib/` sont exécutés via `utilityProcess`. Le chemin doit être correct :

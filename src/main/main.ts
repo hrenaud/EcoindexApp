@@ -236,6 +236,12 @@ async function createWindow() {
 app.whenReady().then(async () => {
     // Initialiser i18next avant de créer le menu
     await initializeI18n()
+
+    // Charger la langue depuis le store et l'appliquer AVANT l'initialisation
+    const savedLanguage = (store.get('language') as string) || 'en'
+    await i18n.changeLanguage(savedLanguage)
+    console.log('Language loaded from store and applied:', savedLanguage)
+
     // Créer la fenêtre d'abord pour avoir mainWindow disponible
     await createWindow()
     // Créer le menu après que la fenêtre soit créée

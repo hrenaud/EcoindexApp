@@ -111,14 +111,51 @@ Voir [API.md](API.md) pour la documentation complète des canaux IPC.
 - `store-get` : Récupérer une valeur
 - `store-delete` : Supprimer une clé
 
-## 5. Écran de démarrage (Splash Screen)
+## 5. Écran de démarrage (Splash Screen) et Popin d'initialisation
 
-L'application affiche un écran de démarrage pendant l'initialisation avec :
+L'application affiche une popin d'initialisation pendant le processus d'initialisation avec :
 
-- Messages de progression traduits
-- Indicateur de progression (étape X/Y)
-- Gestion des erreurs avec liens d'aide
-- Fermeture automatique à la fin de l'initialisation
+- **Messages de progression traduits** : Tous les messages sont traduits selon la langue sauvegardée dans le store
+- **Indicateur de progression** : Barre de progression visuelle (étape X/Y)
+- **Spinner animé** : Indicateur de chargement pendant les opérations
+- **Gestion des erreurs** : Mode alerte (rouge) avec liens d'aide cliquables
+- **Fermeture automatique** : La popin se ferme automatiquement après 2 secondes à la fin de l'initialisation
+- **Support multiligne** : Les messages avec sauts de ligne sont correctement affichés
+- **Responsive** : Largeur minimale/maximale pour s'adapter au contenu
+
+### Composant InformationPopin
+
+**Fichier** : `src/components/InformationPopin.tsx`
+
+**Props** :
+
+- `display: boolean` : Afficher/masquer la popin
+- `title: string` : Titre de la popin
+- `message: string` : Message principal (support multiligne)
+- `showSpinner: boolean` : Afficher le spinner animé
+- `showProgress: boolean` : Afficher la barre de progression
+- `progress: number` : Valeur de progression (0-100)
+- `isAlert: boolean` : Mode alerte (rouge pour les erreurs)
+- `errorLink?: { label: string, url: string }` : Lien d'aide optionnel
+
+### Chargement de la langue
+
+La langue est chargée depuis le store **avant** l'initialisation pour garantir que tous les messages sont traduits :
+
+1. **Dans `main.ts`** : La langue est lue depuis le store et appliquée à i18next avant la création de la fenêtre
+2. **Dans `Initalization.ts`** : Double vérification pour s'assurer que la langue est correctement chargée
+
+```typescript
+// Dans main.ts
+const savedLanguage = (store.get('language') as string) || 'en'
+await i18n.changeLanguage(savedLanguage)
+
+// Dans Initalization.ts
+const savedLanguage = (store.get('language') as string) || 'en'
+if (i18n.language !== savedLanguage) {
+    await i18n.changeLanguage(savedLanguage)
+}
+```
 
 ## 6. Menu Electron
 

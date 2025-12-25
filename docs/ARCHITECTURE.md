@@ -44,6 +44,26 @@ L'application suit l'architecture standard Electron avec séparation stricte ent
 - `nodeIntegration: false` : Pas d'intégration Node.js directe dans le renderer
 - Utilisation de `contextBridge` pour exposer des APIs sécurisées
 
+## Composants UI (Renderer)
+
+### InformationPopin
+
+**Fichier** : `src/components/InformationPopin.tsx`
+
+Composant de popin modal pour afficher les messages d'initialisation avec :
+
+- Overlay semi-transparent
+- Barre de progression
+- Spinner animé
+- Support des erreurs (mode alerte)
+- Messages multilignes
+- Liens d'aide cliquables
+
+**Dépendances** :
+
+- `@radix-ui/react-progress` : Barre de progression
+- `@radix-ui/react-icons` : Icônes (ReloadIcon pour le spinner)
+
 ## Structure du projet
 
 ```

@@ -77,6 +77,8 @@ window.initialisationAPI.sendConfigDatasToFront(
 ): () => void  // Retourne une fonction pour se désabonner
 ```
 
+**Note importante** : Les messages d'initialisation sont automatiquement traduits selon la langue sauvegardée dans le store. La langue est chargée et appliquée à i18next avant le démarrage de l'initialisation.
+
 ## Canaux IPC
 
 ### Initialisation
@@ -298,9 +300,39 @@ type InitalizationDataType =
 ```typescript
 useEffect(() => {
     const unsubscribe = window.initialisationAPI.sendInitializationMessages(
-        (message) => {
+        async (message: InitalizationMessage) => {
             console.log('Initialization message:', message)
-            // Afficher le message dans l'UI
+
+            // Gérer les messages de type 'data' et 'message'
+            if (message.type === 'data') {
+                // Traiter les données (ex: workDir, homeDir, etc.)
+                console.log('Data message:', message.data)
+            } else {
+                // Mettre à jour le titre et le message
+                setTitle(message.title)
+                setMessage(message.message)
+                setErrorLink(message.errorLink)
+            }
+
+            // Mettre à jour la progression
+            if (message.step && message.steps) {
+                const progress = (message.step / message.steps) * 100
+                setProgress(progress)
+            }
+
+            // Gérer les différents types de modal
+            if (message.modalType === 'started') {
+                setDisplayPopin(true)
+                setShowSpinner(true)
+            } else if (message.modalType === 'completed') {
+                // Attendre 2 secondes avant de fermer
+                await new Promise((resolve) => setTimeout(resolve, 2000))
+                setDisplayPopin(false)
+            } else if (message.modalType === 'error') {
+                setDisplayPopin(true)
+                setShowSpinner(false)
+                setIsAlert(true)
+            }
         }
     )
 
@@ -309,6 +341,8 @@ useEffect(() => {
     }
 }, [])
 ```
+
+**Note** : Les messages sont automatiquement traduits selon la langue sauvegardée dans le store. La langue est chargée avant l'initialisation dans le main process.
 
 ### Changer la langue
 

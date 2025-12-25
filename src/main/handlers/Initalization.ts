@@ -77,6 +77,13 @@ export const initialization = async (
         await initializeI18n()
         mainLog.debug('i18next initialized successfully')
 
+        // Charger la langue depuis le store si elle n'est pas déjà chargée
+        const savedLanguage = (store.get('language') as string) || 'en'
+        if (i18n.language !== savedLanguage) {
+            await i18n.changeLanguage(savedLanguage)
+            mainLog.debug('Language changed to:', savedLanguage)
+        }
+
         const nbsteps = 9
         const steps = isDarwin ? nbsteps : nbsteps + 1
         let currentStep = 1
