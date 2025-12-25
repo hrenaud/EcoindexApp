@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { useTranslation } from 'react-i18next'
 
 export function LanguageSwitcher() {
     const { i18n, t } = useTranslation()
@@ -45,23 +45,25 @@ export function LanguageSwitcher() {
 
     return (
         <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-sm">
+            <span className="text-sm text-muted-foreground">
                 {t('language.label')}:
             </span>
             <div className="flex gap-1">
                 <Button
-                    variant={currentLang === 'fr' ? 'default' : 'outline'}
+                    variant={currentLang === 'fr' ? 'secondary' : 'default'}
                     size="sm"
                     onClick={() => handleLanguageChange('fr')}
                     aria-label={t('language.french')}
+                    disabled={currentLang === 'fr'}
                 >
                     FR
                 </Button>
                 <Button
-                    variant={currentLang === 'en' ? 'default' : 'outline'}
+                    variant={currentLang === 'en' ? 'secondary' : 'default'}
                     size="sm"
                     onClick={() => handleLanguageChange('en')}
                     aria-label={t('language.english')}
+                    disabled={currentLang === 'en'}
                 >
                     EN
                 </Button>
