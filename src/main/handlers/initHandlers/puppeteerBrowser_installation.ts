@@ -169,7 +169,7 @@ export const initPuppeteerBrowserInstallation = async (
 
             // Gérer le démarrage du processus
             child.on('spawn', () => {
-                mainLog.log('Child process spawned successfully')
+                mainLog.debug('Child process spawned successfully')
             })
         })
         return new Promise<ConfigData>((resolve) => {

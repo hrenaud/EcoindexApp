@@ -1,4 +1,4 @@
-import { IpcMainEvent, IpcMainInvokeEvent, utilityProcess, app } from 'electron'
+import { IpcMainEvent, IpcMainInvokeEvent, app, utilityProcess } from 'electron'
 
 import { ConfigData } from '../../../class/ConfigData'
 import { _sendMessageToFrontConsole } from '../../utils/SendMessageToFrontConsole'
@@ -167,7 +167,7 @@ export const initPuppeteerBrowserIsInstalled = async (
 
             // Gérer le démarrage du processus
             child.on('spawn', () => {
-                mainLog.log('Child process spawned successfully')
+                mainLog.debug('Child process spawned successfully')
             })
         })
         return new Promise<ConfigData>((resolve) => {

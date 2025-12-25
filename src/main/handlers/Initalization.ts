@@ -66,18 +66,16 @@ export const initialization = async (
     const mainLog = getMainLog().scope('main/initialization')
     const initializedDatas: initializedDatas = {}
 
-    mainLog.info(`forceInitialisation`, forceInitialisation)
-    console.log(
+    mainLog.info(
         'Initialization function called, forceInitialisation:',
         forceInitialisation
     )
+
     try {
         // S'assurer que i18next est initialisé et que les traductions sont chargées
         mainLog.debug('Initializing i18next...')
-        console.log('Initializing i18next...')
         await initializeI18n()
         mainLog.debug('i18next initialized successfully')
-        console.log('i18next initialized successfully')
 
         const nbsteps = 9
         const steps = isDarwin ? nbsteps : nbsteps + 1
@@ -390,7 +388,7 @@ export const initialization = async (
 
         const isReady = forceAppReady || readInitalizedDatas(initializedDatas)
         if (isReady) {
-            mainLog.debug('Application initialized successfully')
+            mainLog.info('Application initialized successfully')
             store.set(storeConstants.APP_INSTALLED_ONCE, true)
             sendInitializationMessage({
                 type: 'data',
