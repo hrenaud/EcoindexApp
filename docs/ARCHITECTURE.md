@@ -300,6 +300,31 @@ Les scripts dans `lib/` sont exécutés via `utilityProcess` :
 - Nécessite `await initializeI18n()` avant utilisation
 - Chargement explicite du namespace `translation`
 
+### Menu Electron et internationalisation
+
+Le menu Electron est construit dynamiquement avec les traductions i18next et se met à jour automatiquement lors des changements de langue.
+
+**Architecture** :
+
+- **`menuFactory.ts`** : Factory centralisée qui construit le menu selon la plateforme
+- **`darwinMenu.ts`** : Template de menu pour macOS
+- **`otherMenu.ts`** : Template de menu pour Windows/Linux
+
+**Mise à jour automatique** :
+
+- Un écouteur d'événement `i18n.on('languageChanged', ...)` dans `menuFactory.ts` reconstruit automatiquement le menu quand la langue change
+- Les références à `app` et `mainWindow` sont conservées pour permettre la reconstruction
+- Le menu est reconstruit immédiatement après chaque changement de langue, garantissant que tous les textes sont à jour
+
+**Flux de changement de langue** :
+
+1. L'utilisateur sélectionne une langue (menu Electron ou composant UI)
+2. `i18n.changeLanguage()` est appelé
+3. L'événement `languageChanged` est émis par i18next
+4. `menuFactory.ts` détecte l'événement et reconstruit le menu
+5. Toutes les fenêtres sont notifiées via IPC `language-changed`
+6. Le renderer met à jour son interface via `react-i18next`
+
 ### Scripts utilitaires
 
 - Exécutés via `utilityProcess` (isolés du main process)

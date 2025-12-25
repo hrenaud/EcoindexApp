@@ -32,15 +32,16 @@ export const darwinTemplate = (
                 checked: _i18n.language === languageCode.code,
                 click: () => {
                     store.set('language', languageCode.code)
-                    _i18n.changeLanguage(languageCode.code)
-                    // Notifier toutes les fenêtres
-                    BrowserWindow.getAllWindows().forEach((window) => {
-                        window.webContents.send(
-                            'language-changed',
-                            languageCode.code
-                        )
+                    _i18n.changeLanguage(languageCode.code).then(() => {
+                        // Notifier toutes les fenêtres
+                        BrowserWindow.getAllWindows().forEach((window) => {
+                            window.webContents.send(
+                                'language-changed',
+                                languageCode.code
+                            )
+                        })
+                        // Le menu sera reconstruit automatiquement via l'événement 'languageChanged' de i18next
                     })
-                    // Le menu sera reconstruit automatiquement via changeLanguage dans main.ts
                 },
             }
         })

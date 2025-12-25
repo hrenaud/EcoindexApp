@@ -133,6 +133,9 @@ EcoindexApp-2025/
 - `preload.ts` : Script de pont sécurisé via `contextBridge`
 - `memory.ts` : Gestion de la référence à la fenêtre principale
 - `handlers/Initalization.ts` : Orchestrateur du processus d'initialisation
+- `menus/menuFactory.ts` : Factory pour construire le menu avec écouteur de changements de langue
+- `menus/darwinMenu.ts` : Template de menu pour macOS
+- `menus/otherMenu.ts` : Template de menu pour Windows/Linux
 
 ### `src/renderer/`
 

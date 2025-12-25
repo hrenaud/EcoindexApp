@@ -234,6 +234,36 @@ await i18n.changeLanguage(savedLanguage)
 // Maintenant l'initialisation peut commencer avec les bonnes traductions
 ```
 
+### Menu Electron et changements de langue
+
+Le menu Electron se met à jour automatiquement lors des changements de langue grâce à un écouteur d'événement dans `menuFactory.ts` :
+
+**Fonctionnement** :
+
+1. **Écouteur d'événement** : `menuFactory.ts` écoute l'événement `languageChanged` d'i18next
+2. **Reconstruction automatique** : Quand la langue change, le menu est automatiquement reconstruit avec les nouvelles traductions
+3. **Références conservées** : Les références à `app` et `mainWindow` sont conservées pour permettre la reconstruction
+
+**Code** :
+
+```typescript
+// menuFactory.ts
+i18n.on('languageChanged', () => {
+    if (currentApp && currentMainWindow) {
+        mainLog.debug('Language changed, rebuilding menu...')
+        buildMenu(currentApp, currentMainWindow, i18n)
+    }
+})
+```
+
+**Changements de langue déclenchent la reconstruction** :
+
+- Sélection d'une langue dans le menu Electron (menu "Language")
+- Changement via le composant `LanguageSwitcher` dans le renderer
+- Tout appel à `i18n.changeLanguage()` depuis n'importe où dans l'application
+
+**Note** : Les handlers de clic dans `darwinMenu.ts` et `otherMenu.ts` utilisent `.then()` après `changeLanguage()` pour s'assurer que l'événement est bien émis avant de notifier les fenêtres.
+
 ### Popin d'initialisation
 
 Le composant `InformationPopin` affiche les messages d'initialisation dans le renderer. Pour l'utiliser :

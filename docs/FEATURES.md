@@ -90,10 +90,11 @@ L'application supporte deux langues :
 
 ### Changement de langue
 
-- **Menu Electron** : Menu "View > Language" avec sélection radio
+- **Menu Electron** : Menu "Language" avec sélection radio (macOS/Windows/Linux)
 - **Composant UI** : `LanguageSwitcher` dans l'interface React
 - **Persistance** : Langue sauvegardée dans `electron-store`
 - **Synchronisation** : Changements propagés entre main et renderer via IPC
+- **Mise à jour automatique du menu** : Le menu Electron se reconstruit automatiquement lors des changements de langue grâce à un écouteur d'événement `languageChanged` dans `menuFactory.ts`
 
 ## 3. Système de stockage (electron-store)
 
