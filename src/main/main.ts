@@ -1,24 +1,25 @@
-import { createRequire } from 'node:module'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import { BrowserWindow, app, ipcMain } from 'electron'
-import log from 'electron-log'
-import Store from 'electron-store'
-import { setMainWindow } from './memory'
-import { initialization } from './handlers/Initalization'
-import { buildMenu } from './menus/menuFactory'
 import i18n, { initializeI18n } from '../configs/i18next.config'
+
+import { LinuxUpdate } from '../class/LinuxUpdate'
+import Store from 'electron-store'
+import Updater from './Updater'
+import { buildMenu } from './menus/menuFactory'
+import { channels } from '../shared/constants'
+import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
+import { initialization } from './handlers/Initalization'
+import log from 'electron-log'
+import path from 'node:path'
+import pkg from '../../package.json'
+import { setMainWindow } from './memory'
 
 // Configuration de electron-log
 log.initialize()
 log.transports.file.level = 'debug' // Toujours en debug pour les fichiers
 log.transports.console.level = 'debug' // Toujours en debug pour la console
 log.transports.file.maxSize = 5 * 1024 * 1024 // 5MB
-console.log(
-    'electron-log initialized, file:',
-    log.transports.file.getFile().path
-)
+log.log('electron-log initialized, file:', log.transports.file.getFile().path)
 
 export const getMainLog = () => {
     return log
@@ -177,14 +178,14 @@ async function createWindow() {
 
     // In development, always try to load from Vite dev server first
     if (VITE_DEV_SERVER_URL) {
-        console.log('Loading from Vite dev server:', VITE_DEV_SERVER_URL)
+        log.debug('Loading from Vite dev server:', VITE_DEV_SERVER_URL)
         win.loadURL(VITE_DEV_SERVER_URL)
         // Open devTool if the app is not packaged
         win.webContents.openDevTools()
     } else {
-        console.log('Loading from file:', RENDERER_HTML)
-        console.log('App path:', app.getAppPath())
-        console.log('Is packaged:', app.isPackaged)
+        log.debug('Loading from file:', RENDERER_HTML)
+        log.debug('App path:', app.getAppPath())
+        log.debug('Is packaged:', app.isPackaged)
         win.loadFile(RENDERER_HTML)
     }
 
@@ -192,7 +193,6 @@ async function createWindow() {
     win.webContents.on('did-finish-load', () => {
         const mainLog = getMainLog()
         mainLog.info('Window did-finish-load event fired')
-        console.log('Window did-finish-load event fired')
         win?.webContents.send(
             'main-process-message',
             new Date().toLocaleString()
@@ -204,19 +204,15 @@ async function createWindow() {
             mainLog.info(
                 'Starting automatic initialization from main process...'
             )
-            console.log(
-                'Starting automatic initialization from main process...'
-            )
             try {
                 // Créer un event factice pour l'initialisation
                 const fakeEvent = {
                     sender: win?.webContents,
                 } as any
                 mainLog.debug('Calling initialization function...')
-                console.log('Calling initialization function...')
+
                 const result = await initialization(fakeEvent, false)
                 mainLog.info('Initialization completed with result:', result)
-                console.log('Initialization completed with result:', result)
             } catch (error) {
                 mainLog.error('Error during automatic initialization:', error)
                 console.error('Error during automatic initialization:', error)
@@ -245,6 +241,72 @@ app.whenReady().then(async () => {
     // Créer le menu après que la fenêtre soit créée
     if (win) {
         buildMenu(app, win, i18n)
+    }
+
+    // Initialiser l'auto-update pour macOS et Windows
+    if (process.platform !== 'linux') {
+        const mainLog = getMainLog()
+        mainLog.info('Initializing auto-updater for', process.platform)
+        try {
+            const updater = Updater.getInstance()
+            // Vérifier les mises à jour au démarrage (mode silencieux)
+            updater.checkForUpdates(true)
+        } catch (error) {
+            mainLog.error('Error initializing updater:', error)
+        }
+    }
+
+    // Système de vérification Linux spécifique
+    if (process.platform === 'linux') {
+        const mainLog = getMainLog()
+        const checkLinuxUpdater = async () => {
+            try {
+                // Extraire le repository depuis package.json
+                const pkgAny = pkg as any
+                let repoPath = 'hrenaud/EcoindexApp' // Valeur par défaut
+                if (pkgAny.repository) {
+                    if (typeof pkgAny.repository === 'string') {
+                        const match = pkgAny.repository.match(
+                            /github\.com[/:]([^/]+\/[^/]+)/
+                        )
+                        if (match) {
+                            repoPath = match[1].replace(/\.git$/, '')
+                        }
+                    } else if (pkgAny.repository.url) {
+                        const match = pkgAny.repository.url.match(
+                            /github\.com[/:]([^/]+\/[^/]+)/
+                        )
+                        if (match) {
+                            repoPath = match[1].replace(/\.git$/, '')
+                        }
+                    }
+                }
+                const url = `https://api.github.com/repos/${repoPath}/releases/latest`
+                const tags = await fetch(url).then((_) => _.json())
+                const currentVersion = pkg.version
+                const lastVersion = tags['tag_name']
+                if (currentVersion !== lastVersion) {
+                    const lastVersionURL = tags['html_url']
+                    mainLog.debug(`currentVersion`, currentVersion)
+                    mainLog.debug(`lastVersion`, lastVersion)
+                    mainLog.debug(`lastVersionURL`, lastVersionURL)
+                    mainLog.debug(`Update Needed!`)
+                    const linuxUpdate = new LinuxUpdate(
+                        lastVersion,
+                        lastVersionURL
+                    )
+                    if (win) {
+                        win.webContents.send(
+                            channels.ALERT_LINUX_UPDATE,
+                            linuxUpdate
+                        )
+                    }
+                }
+            } catch (error) {
+                mainLog.error('Error checking Linux update:', error)
+            }
+        }
+        checkLinuxUpdater()
     }
 })
 

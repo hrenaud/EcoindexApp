@@ -76,5 +76,16 @@
     "learnMoreAbout": "En apprendre plus sur",
     "log": "Journal...",
     "openSplashWindow": "Ouvrir la fenêtre d'accueil..."
+  },
+  "update": {
+    "newVersionAvailable": "Une nouvelle version d'EcoindexApp est disponible !",
+    "downloadingInBackground": "La nouvelle version est en cours de téléchargement en arrière-plan. Une fois téléchargée, vous serez notifié.",
+    "upToDate": "Vous êtes à jour !",
+    "currentVersionIsNewest": "EcoindexApp {{version}} est actuellement la version la plus récente disponible.",
+    "applicationUpdate": "Mise à jour de l'application",
+    "restartToApply": "Une nouvelle version a été téléchargée. Redémarrez l'application pour appliquer les mises à jour.",
+    "restart": "Redémarrer",
+    "later": "Plus tard",
+    "linuxNewVersionAvailable": "Une nouvelle version de l'application est disponible ({{version}}), voulez-vous la télécharger ?"
   }
 }

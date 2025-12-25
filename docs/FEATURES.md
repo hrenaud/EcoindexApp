@@ -130,6 +130,125 @@ Le menu de l'application inclut :
 - **View > Zoom** : Contrôles de zoom
 - **View > Fullscreen** : Mode plein écran
 
+## 7. Système d'auto-update
+
+L'application dispose de deux systèmes de mise à jour automatique selon la plateforme :
+
+### 7.1 Auto-update pour macOS et Windows
+
+**Implémentation** : `src/main/Updater.ts`
+
+Utilise `electron-updater` pour vérifier et installer automatiquement les mises à jour.
+
+#### Fonctionnalités
+
+- **Vérification automatique** : Vérifie les mises à jour toutes les heures
+- **Vérification au démarrage** : Vérifie les mises à jour au lancement de l'application (mode silencieux)
+- **Source de mises à jour** : `update.electronjs.org` pour les releases GitHub
+- **Téléchargement en arrière-plan** : Les mises à jour sont téléchargées automatiquement
+- **Notifications utilisateur** :
+    - Message informatif lors de la disponibilité d'une mise à jour
+    - Dialogue de confirmation pour redémarrer après téléchargement
+    - Message de confirmation si l'application est à jour (mode non-silencieux uniquement)
+
+#### Configuration
+
+- **Mode production uniquement** : Désactivé en mode développement (`NODE_ENV !== 'production'`)
+- **URL de feed** : `https://update.electronjs.org/cnumr/EcoindexApp/{platform}-{arch}/{version}`
+- **User-Agent** : Format `{productName}/{version} ({platform}: {arch})`
+
+#### Événements gérés
+
+- `error` : Erreurs lors de la vérification/téléchargement
+- `checking-for-update` : Début de la vérification
+- `update-available` : Mise à jour disponible, téléchargement en cours
+- `update-not-available` : Application à jour
+- `update-downloaded` : Mise à jour téléchargée, prête à installer
+
+#### Utilisation
+
+```typescript
+// Initialisation automatique dans main.ts
+if (process.platform !== 'linux') {
+    const updater = Updater.getInstance()
+    updater.checkForUpdates(true) // Mode silencieux
+}
+
+// Vérification manuelle (mode non-silencieux)
+updater.checkForUpdates(false)
+```
+
+### 7.2 Auto-update spécifique Linux
+
+**Implémentation** : `src/main/main.ts` (fonction `checkLinuxUpdater`)
+
+Linux utilise un système différent car `electron-updater` ne supporte pas nativement les packages DEB/RPM.
+
+#### Fonctionnalités
+
+- **Vérification via API GitHub** : Interroge l'API GitHub pour les dernières releases
+- **Comparaison de versions** : Compare la version actuelle (`package.json`) avec la dernière release
+- **Notification IPC** : Envoie un message au renderer si une mise à jour est disponible
+- **Téléchargement manuel** : L'utilisateur doit télécharger manuellement depuis GitHub
+
+#### Flux de mise à jour
+
+1. Au démarrage de l'application (si `process.platform === 'linux'`)
+2. Requête GET vers `https://api.github.com/repos/cnumr/EcoindexApp/releases/latest`
+3. Comparaison de `tags.tag_name` avec `package.json.version`
+4. Si différentes versions :
+    - Création d'un objet `LinuxUpdate` avec version et URL
+    - Envoi via IPC au renderer (`channels.ALERT_LINUX_UPDATE`)
+
+#### API exposée au renderer
+
+```typescript
+// Dans preload.ts
+window.electronAPI.handleNewLinuxVersion((linuxUpdate: LinuxUpdate) => {
+    // linuxUpdate.latestReleaseVersion : Version disponible
+    // linuxUpdate.latestReleaseURL : URL de la release GitHub
+})
+```
+
+#### Classe LinuxUpdate
+
+```typescript
+export class LinuxUpdate {
+    readonly latestReleaseVersion: string
+    readonly latestReleaseURL: string
+}
+```
+
+### 7.3 Traductions
+
+Toutes les messages de mise à jour sont traduits dans `src/locales/{fr,en}/translation.json` :
+
+**Clés de traduction** :
+
+- `update.newVersionAvailable` : "Une nouvelle version est disponible"
+- `update.downloadingInBackground` : "Téléchargement en arrière-plan"
+- `update.upToDate` : "Vous êtes à jour"
+- `update.currentVersionIsNewest` : "Version actuelle est la plus récente"
+- `update.applicationUpdate` : "Mise à jour de l'application"
+- `update.restartToApply` : "Redémarrer pour appliquer les mises à jour"
+- `update.restart` : "Redémarrer"
+- `update.later` : "Plus tard"
+- `update.linuxNewVersionAvailable` : "Nouvelle version disponible ({{version}})"
+
+### 7.4 Limitations
+
+**macOS/Windows** :
+
+- Nécessite une configuration correcte de `update.electronjs.org`
+- Les tags GitHub doivent suivre la convention SemVer
+- Note : Actuellement, les tags `electron-vX.Y.x` ne sont pas compatibles SemVer
+
+**Linux** :
+
+- Pas de téléchargement automatique
+- Pas d'installation automatique
+- L'utilisateur doit installer manuellement le nouveau package (DEB/RPM)
+
 ## Limitations actuelles
 
 ### Fonctionnalités non implémentées

@@ -19,6 +19,7 @@
 - **electron-store 11.0.2** : Persistance des données
 - **i18next 25.7.1** : Internationalisation (main process)
 - **i18next-fs-backend 2.6.1** : Backend fichiers pour i18next
+- **electron-updater** : Système de mise à jour automatique (macOS/Windows)
 
 ### Build & Tooling
 

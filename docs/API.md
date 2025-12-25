@@ -15,7 +15,7 @@ window.ipcRenderer.invoke(channel: string, ...args: any[]): Promise<any>
 
 ### window.electronAPI
 
-API pour la gestion de la langue.
+API pour la gestion de la langue et des mises à jour Linux.
 
 ```typescript
 // Changer la langue
@@ -28,6 +28,17 @@ window.electronAPI.getLanguage(): Promise<string>
 window.electronAPI.onLanguageChanged(
     callback: (lang: string) => void
 ): () => void  // Retourne une fonction pour se désabonner
+
+// Écouter les notifications de mise à jour Linux (Linux uniquement)
+window.electronAPI.handleNewLinuxVersion(
+    callback: (linuxUpdate: LinuxUpdate) => void
+): () => void  // Retourne une fonction pour se désabonner
+
+// Type LinuxUpdate
+interface LinuxUpdate {
+    readonly latestReleaseVersion: string  // Version disponible (ex: "v0.1.16")
+    readonly latestReleaseURL: string      // URL de la release GitHub
+}
 ```
 
 ### window.store
@@ -144,6 +155,25 @@ Récupère la langue actuellement sauvegardée.
 
 Notification envoyée à toutes les fenêtres lors d'un changement de langue.
 
+### Mises à jour Linux
+
+#### `alert-linux-update`
+
+**Direction** : Main → Renderer  
+**Type** : `webContents.send`  
+**Message** : `LinuxUpdate`
+
+```typescript
+class LinuxUpdate {
+    readonly latestReleaseVersion: string // Version disponible (ex: "v0.1.16")
+    readonly latestReleaseURL: string // URL de la release GitHub
+}
+```
+
+Notification envoyée uniquement sur Linux lorsqu'une nouvelle version est disponible sur GitHub. L'utilisateur doit télécharger et installer manuellement la nouvelle version.
+
+**Note** : Ce canal n'est utilisé que sur Linux. macOS et Windows utilisent `electron-updater` pour les mises à jour automatiques.
+
 ### Store
 
 #### `store-set`
@@ -231,6 +261,17 @@ class ConfigData {
 }
 ```
 
+### LinuxUpdate
+
+```typescript
+class LinuxUpdate {
+    readonly latestReleaseVersion: string // Version disponible (ex: "v0.1.16")
+    readonly latestReleaseURL: string // URL de la release GitHub
+}
+```
+
+Utilisé uniquement sur Linux pour notifier l'utilisateur d'une nouvelle version disponible.
+
 ### InitalizationData
 
 ```typescript
@@ -289,4 +330,27 @@ const value = await window.store.get('myKey', 'defaultValue')
 
 // Supprimer
 await window.store.delete('myKey')
+```
+
+### Écouter les mises à jour Linux
+
+```typescript
+useEffect(() => {
+    const unsubscribe = window.electronAPI.handleNewLinuxVersion(
+        (linuxUpdate) => {
+            const confirmMessage = t('update.linuxNewVersionAvailable', {
+                version: linuxUpdate.latestReleaseVersion,
+            })
+
+            if (window.confirm(confirmMessage)) {
+                // Ouvrir la page de release GitHub dans le navigateur
+                window.open(linuxUpdate.latestReleaseURL, '_blank')
+            }
+        }
+    )
+
+    return () => {
+        unsubscribe() // Nettoyer l'écouteur
+    }
+}, [])
 ```

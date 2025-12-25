@@ -23,7 +23,7 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     // You can expose other APTs for the renderer process here
 })
 
-// --------- Expose language API ---------
+// --------- Expose language API and Linux update API ---------
 contextBridge.exposeInMainWorld('electronAPI', {
     changeLanguage: (lang: string) =>
         ipcRenderer.invoke('change-language', lang),
@@ -34,6 +34,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
         )
         return () => {
             ipcRenderer.removeAllListeners('language-changed')
+        }
+    },
+    handleNewLinuxVersion: (callback: (linuxUpdate: any) => void) => {
+        ipcRenderer.on('alert-linux-update', (_event, linuxUpdate) =>
+            callback(linuxUpdate)
+        )
+        return () => {
+            ipcRenderer.removeAllListeners('alert-linux-update')
         }
     },
 })
