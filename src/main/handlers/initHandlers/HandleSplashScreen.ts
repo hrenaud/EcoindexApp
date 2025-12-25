@@ -1,10 +1,10 @@
 import { IpcMainEvent } from 'electron'
 import Store from 'electron-store'
-import { channels } from '../../shared/constants'
-import { convertVersion } from '../../main/utils'
-import { getMainLog } from '../main'
-import { getMainWindow } from '../memory'
-import pkg from '../../../package.json'
+import { channels } from '../../../shared/constants'
+import { convertVersion } from '../../../shared/utils'
+import { getMainLog } from '../../main'
+import { getMainWindow } from '../../memory'
+import pkg from '../../../../package.json'
 
 const store = new Store()
 

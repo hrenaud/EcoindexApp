@@ -1,8 +1,8 @@
-import { _sendMessageToFrontConsole } from '../utils/SendMessageToFrontConsole'
-import { _sendMessageToFrontLog } from '../utils/SendMessageToFrontLog'
+import { _sendMessageToFrontConsole } from '../../utils/SendMessageToFrontConsole'
+import { _sendMessageToFrontLog } from '../../utils/SendMessageToFrontLog'
 import asar from '@electron/asar'
 import fs from 'fs'
-import { getMainLog } from '../main'
+import { getMainLog } from '../../main'
 import path from 'path'
 
 const extractAsarLib = async () => {

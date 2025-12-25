@@ -88,6 +88,46 @@ Composant de basculement entre mode clair et mode sombre avec :
 - `@radix-ui/react-switch` : Composant switch
 - `lucide-react` : Icônes Sun et SunMoon
 
+### SplashScreen
+
+**Fichier** : `src/components/SplashScreen.tsx`
+
+Composant modal pour afficher l'écran de démarrage avec contenu markdown :
+
+- Affichage conditionnel basé sur les préférences utilisateur (via `electron-store`)
+- Contenu markdown chargé depuis `src/extraResources/md/` (fichiers `.en.md` et `.fr.md`)
+- Checkbox "Ne plus afficher" pour masquer définitivement le splash screen pour la version actuelle
+- Bouton de fermeture
+- Affichage de la version de l'application
+- Support multilingue (français/anglais)
+
+**Fonctionnement** :
+
+1. Écoute les messages IPC `display-splash-screen` depuis le main process
+2. Charge le contenu markdown selon la langue actuelle
+3. Vérifie dans le store si l'utilisateur a choisi de ne plus afficher le splash screen
+4. Permet de sauvegarder la préférence dans le store
+
+**Dépendances** :
+
+- `react-markdown` : Rendu du contenu markdown
+- `@radix-ui/react-checkbox` : Checkbox pour "Ne plus afficher"
+- `electron-store` : Persistance des préférences
+
+### MarkdownReader
+
+**Fichier** : `src/components/MarkdownReader.tsx`
+
+Composant simple pour afficher du contenu markdown :
+
+- Utilise `react-markdown` pour le rendu
+- Accepte une chaîne de caractères markdown en prop `file`
+- Utilisé par `SplashScreen` pour afficher le contenu des fichiers `.md`
+
+**Dépendances** :
+
+- `react-markdown` : Bibliothèque de rendu markdown
+
 ## Structure du projet
 
 ```
@@ -100,15 +140,17 @@ EcoindexApp-2025/
 │   │   ├── utils-node.ts       # Utilitaires Node.js
 │   │   ├── handlers/            # Handlers de logique métier
 │   │   │   ├── Initalization.ts # Orchestrateur d'initialisation
-│   │   │   ├── HandleExtractAsarLib.ts
-│   │   │   ├── HandleSplashScreen.ts
 │   │   │   └── initHandlers/    # Handlers spécifiques d'initialisation
-│   │   │       ├── getHomeDir.ts
-│   │   │       ├── getWorkDir.ts
-│   │   │       ├── IsNodeInstalled.ts
-│   │   │       ├── isNodeVersionOK.ts
-│   │   │       ├── puppeteerBrowser_isInstalled.ts
-│   │   │       └── puppeteerBrowser_installation.ts
+│   │   │       ├── getHomeDir.ts        # Récupération du dossier home
+│   │   │       ├── getWorkDir.ts        # Récupération du dossier de travail
+│   │   │       ├── IsNodeInstalled.ts   # Vérification Node.js
+│   │   │       ├── isNodeVersionOK.ts  # Vérification version Node.js
+│   │   │       ├── HandleExtractAsarLib.ts  # Extraction ASAR (Windows)
+│   │   │       ├── HandleSplashScreen.ts    # Gestion du splash screen
+│   │   │       ├── plugin_isInstalled.ts     # Vérification plugin Lighthouse
+│   │   │       ├── plugin_installNormally.ts # Installation plugin Lighthouse
+│   │   │       ├── puppeteerBrowser_isInstalled.ts    # Vérification Puppeteer
+│   │   │       └── puppeteerBrowser_installation.ts   # Installation Puppeteer
 │   │   └── utils/               # Utilitaires
 │   │       ├── SendMessageToFrontConsole.ts
 │   │       └── SendMessageToFrontLog.ts

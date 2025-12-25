@@ -70,7 +70,9 @@ export interface IElectronAPI {
     sendLogToFront: (callback) => string
     sendMessageToFrontLog: (callback) => object
     sendDatasToFront: (callback) => object
-    handleNewLinuxVersion: (callback) => LinuxUpdate
+    handleNewLinuxVersion: (
+        callback: (linuxUpdate: LinuxUpdate) => void
+    ) => () => void
     // Front → Main
     getInitialTranslations: () => Promise<object>
     handleSetFolderOuput: () => Promise<string>
@@ -101,6 +103,8 @@ export interface IElectronAPI {
     changeLanguage: (lang: string) => Promise<void>
     getLanguage: () => Promise<string>
     onLanguageChanged: (callback: (lang: string) => void) => () => void
+    // Méthode pour afficher le splash screen
+    displaySplashScreen: (callback: (visibility: boolean) => void) => () => void
 }
 
 export interface IInitalization {

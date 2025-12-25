@@ -12,13 +12,15 @@ EcoindexApp-2025/
 │   │   ├── utils-node.ts        # Utilitaires Node.js
 │   │   ├── handlers/            # Handlers de logique métier
 │   │   │   ├── Initalization.ts # Orchestrateur d'initialisation
-│   │   │   ├── HandleExtractAsarLib.ts  # Extraction ASAR (Windows)
-│   │   │   ├── HandleSplashScreen.ts    # Gestion du splash screen
 │   │   │   └── initHandlers/    # Handlers spécifiques d'initialisation
 │   │   │       ├── getHomeDir.ts        # Récupération du dossier home
 │   │   │       ├── getWorkDir.ts        # Récupération du dossier de travail
 │   │   │       ├── IsNodeInstalled.ts   # Vérification Node.js
 │   │   │       ├── isNodeVersionOK.ts  # Vérification version Node.js
+│   │   │       ├── HandleExtractAsarLib.ts  # Extraction ASAR (Windows)
+│   │   │       ├── HandleSplashScreen.ts    # Gestion du splash screen
+│   │   │       ├── plugin_isInstalled.ts    # Vérification plugin Lighthouse
+│   │   │       ├── plugin_installNormally.ts # Installation plugin Lighthouse
 │   │   │       ├── puppeteerBrowser_isInstalled.ts    # Vérification Puppeteer
 │   │   │       └── puppeteerBrowser_installation.ts   # Installation Puppeteer
 │   │   └── utils/               # Utilitaires
@@ -33,10 +35,15 @@ EcoindexApp-2025/
 │   ├── components/               # Composants React
 │   │   ├── InformationPopin.tsx  # Popin d'initialisation
 │   │   ├── LanguageSwitcher.tsx # Sélecteur de langue
+│   │   ├── DarkModeSwitcher.tsx # Sélecteur de mode sombre
+│   │   ├── SplashScreen.tsx      # Écran de démarrage
+│   │   ├── MarkdownReader.tsx    # Lecteur de markdown
 │   │   └── ui/                  # Composants Shadcn/ui
 │   │       ├── button.tsx
 │   │       ├── card.tsx
-│   │       └── progress.tsx     # Barre de progression
+│   │       ├── progress.tsx     # Barre de progression
+│   │       ├── switch.tsx       # Switch (mode sombre)
+│   │       └── checkbox.tsx     # Checkbox
 │   ├── configs/                  # Configurations
 │   │   ├── i18next.config.ts    # i18n pour main process
 │   │   └── i18nResources.ts     # i18n pour renderer process
@@ -50,7 +57,8 @@ EcoindexApp-2025/
 │   │   ├── InitalizationData.ts # Données d'initialisation
 │   │   └── LinuxUpdate.ts        # Mise à jour Linux
 │   ├── shared/                   # Code partagé
-│   │   └── constants.ts          # Constantes et configuration par défaut
+│   │   ├── constants.ts          # Constantes et configuration par défaut
+│   │   └── utils.ts              # Utilitaires partagés (main + renderer)
 │   ├── extraResources/           # Ressources packagées
 │   │   ├── lib.asar              # Archive des scripts Node.js
 │   │   └── md/                   # Contenu markdown

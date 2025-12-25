@@ -34,12 +34,20 @@ window.electronAPI.handleNewLinuxVersion(
     callback: (linuxUpdate: LinuxUpdate) => void
 ): () => void  // Retourne une fonction pour se désabonner
 
+// Écouter les commandes d'affichage du splash screen
+window.electronAPI.displaySplashScreen(
+    callback: (visibility: boolean) => void
+): () => void  // Retourne une fonction pour se désabonner
+
 // Type LinuxUpdate
 interface LinuxUpdate {
     readonly latestReleaseVersion: string  // Version disponible (ex: "v0.1.16")
     readonly latestReleaseURL: string      // URL de la release GitHub
 }
 ```
+
+<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
+grep
 
 ### window.store
 
@@ -229,7 +237,8 @@ Les canaux suivants sont définis dans `src/shared/constants.ts` mais ne sont pa
 - `is-lighthouse-ecoindex-installed` : Vérifier l'installation du plugin
 - `install-ecoindex-plugin` : Installer le plugin
 - `open-report` : Ouvrir un rapport
-- `display-splash-screen` : Afficher l'écran de démarrage
+
+**Note** : Le canal `display-splash-screen` est maintenant implémenté (voir section ci-dessus).
 
 ## Types TypeScript
 

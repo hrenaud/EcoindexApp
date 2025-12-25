@@ -78,6 +78,23 @@ Met à jour les packages Lighthouse dans le dossier `lib/`.
 - **Classes/Interfaces** : `src/class/`, `src/types.d.ts`, `src/interface.d.ts`
 - **Constantes** : `src/shared/constants.ts`
 
+### Handlers d'initialisation
+
+Les handlers d'initialisation sont regroupés dans `src/main/handlers/initHandlers/` :
+
+- **`getHomeDir.ts`** : Récupère le dossier home de l'utilisateur
+- **`getWorkDir.ts`** : Récupère ou crée le dossier de travail
+- **`IsNodeInstalled.ts`** : Vérifie si Node.js est installé
+- **`isNodeVersionOK.ts`** : Vérifie si la version de Node.js est compatible
+- **`HandleExtractAsarLib.ts`** : Extrait `lib.asar` sur Windows (nécessaire pour les utility processes)
+- **`HandleSplashScreen.ts`** : Gère l'affichage du splash screen selon les préférences utilisateur
+- **`plugin_isInstalled.ts`** : Vérifie si le plugin Lighthouse Ecoindex est installé
+- **`plugin_installNormally.ts`** : Installe le plugin Lighthouse Ecoindex
+- **`puppeteerBrowser_isInstalled.ts`** : Vérifie si le navigateur Puppeteer est installé
+- **`puppeteerBrowser_installation.ts`** : Installe le navigateur Puppeteer
+
+**Note** : `HandleExtractAsarLib` et `HandleSplashScreen` ont été déplacés dans `initHandlers/` pour regrouper tous les handlers liés à l'initialisation au même endroit.
+
 ### Gestion des erreurs
 
 - Utilisation de `electron-log` pour tous les logs

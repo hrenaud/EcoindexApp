@@ -21,6 +21,9 @@ declare global {
             changeLanguage: (lang: string) => Promise<void>
             getLanguage: () => Promise<string>
             onLanguageChanged: (callback: (lang: string) => void) => () => void
+            displaySplashScreen: (
+                callback: (visibility: boolean) => void
+            ) => () => void
         }
         store: {
             set: (key: string, value: unknown) => Promise<void>

@@ -2,9 +2,7 @@ import { BrowserWindow, app as ElectronApp, shell } from 'electron'
 
 import Store from 'electron-store'
 import log from 'electron-log'
-import { handleSplashScreen } from '../handlers/HandleSplashScreen'
 import i18n from '../../configs/i18next.config'
-import { convertVersion } from '../utils'
 import pkg from '../../../package.json'
 
 const mainLog = log.scope('main/darwinMenu')
@@ -177,19 +175,20 @@ export const darwinTemplate = (
                         },
                     },
                     {
-                        label: _i18n.t('menu.log'),
+                        type: 'separator',
+                    },
+                    {
+                        label: _i18n.t('Open splash window...'),
                         click: async () => {
-                            await shell.openPath(logFile)
+                            const { handleSplashScreen } =
+                                await import('../handlers/initHandlers/HandleSplashScreen')
+                            await handleSplashScreen(null, 'resetAndDisplay')
                         },
                     },
                     {
-                        label: _i18n.t('menu.openSplashWindow'),
+                        label: _i18n.t('menu.log'),
                         click: async () => {
-                            store.set(
-                                `displayHello.${convertVersion(pkg.version)}`,
-                                false
-                            )
-                            await handleSplashScreen(null, 'resetAndDisplay')
+                            await shell.openPath(logFile)
                         },
                     },
                 ],

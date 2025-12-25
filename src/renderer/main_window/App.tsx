@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import { DarkModeSwitcher } from '@/components/DarkModeSwitcher'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { SplashScreen } from '@/components/SplashScreen'
 import { Button } from '@/components/ui/button'
 import {
     Card,
@@ -176,6 +177,7 @@ function App() {
                         </a>
                     )}
             </InformationPopin>
+            <SplashScreen id="splash-screen" onClose={() => {}} />
         </>
     )
 }

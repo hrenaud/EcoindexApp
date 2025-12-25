@@ -44,6 +44,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
             ipcRenderer.removeAllListeners('alert-linux-update')
         }
     },
+    displaySplashScreen: (callback: (visibility: boolean) => void) => {
+        ipcRenderer.on('display-splash-screen', (_event, visibility: boolean) =>
+            callback(visibility)
+        )
+        return () => {
+            ipcRenderer.removeAllListeners('display-splash-screen')
+        }
+    },
 })
 
 // --------- Expose store API (comme dans l'ancienne application) ---------

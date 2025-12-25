@@ -11,10 +11,9 @@ import {
 } from '../../class/InitalizationData'
 import { InitalizationMessage } from '@/types'
 import Store from 'electron-store'
-import extractAsarLib from './HandleExtractAsarLib'
+import extractAsarLib from './initHandlers/HandleExtractAsarLib'
 import { getMainLog } from '../main'
 import { getMainWindow } from '../memory'
-import { handleSplashScreen } from './HandleSplashScreen'
 import i18n, { initializeI18n } from '../../configs/i18next.config'
 import { initGetHomeDir } from './initHandlers/getHomeDir'
 import { initGetWorkDir } from './initHandlers/getWorkDir'
@@ -404,7 +403,12 @@ export const initialization = async (
                     result: true,
                 },
             } as InitalizationMessage)
-            handleSplashScreen(null, 'normal')
+            // Attendre que la popin d'initialisation se ferme (2 secondes + marge)
+            await new Promise((resolve) => setTimeout(resolve, 2500))
+            // Afficher le splash screen après la fermeture de la popin
+            const { handleSplashScreen } =
+                await import('./initHandlers/HandleSplashScreen')
+            await handleSplashScreen(null, 'normal')
             return true
         }
         return false
