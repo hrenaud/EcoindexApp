@@ -2,6 +2,12 @@ import { IpcRendererEvent } from 'electron'
 
 import type { ConfigData } from '@/class/ConfigData'
 import type { InitalizationMessage } from '@/types'
+import type {
+    ISimpleUrlInput,
+    IAdvancedMesureData,
+    IJsonMesureData,
+    IKeyValue,
+} from '@/interface'
 
 declare global {
     interface Window {
@@ -24,6 +30,27 @@ declare global {
             displaySplashScreen: (
                 callback: (visibility: boolean) => void
             ) => () => void
+            handleNewLinuxVersion: (
+                callback: (linuxUpdate: any) => void
+            ) => () => void
+            handleSimpleMesures: (
+                urlsList: ISimpleUrlInput[],
+                localAdvConfig: IAdvancedMesureData,
+                envVars: IKeyValue
+            ) => Promise<string>
+            handleJsonSaveAndCollect: (
+                jsonDatas: IJsonMesureData,
+                andCollect: boolean,
+                envVars: IKeyValue
+            ) => Promise<string>
+            handleJsonReadAndReload: () => Promise<IJsonMesureData>
+            handleSelectFolder: () => Promise<string>
+            handleSelectPuppeteerFilePath: () => Promise<string>
+            handleIsJsonConfigFileExist: (workDir: string) => Promise<boolean>
+            sendDatasToFront: (callback: (data: any) => void) => () => void
+            changeLanguageInFront: (
+                callback: (lng: string) => void
+            ) => () => void
         }
         store: {
             set: (key: string, value: unknown) => Promise<void>
@@ -40,6 +67,11 @@ declare global {
             sendConfigDatasToFront: (
                 callback: (data: ConfigData) => void
             ) => () => void
+        }
+        versions: {
+            chrome: () => string
+            node: () => string
+            electron: () => string
         }
     }
 }

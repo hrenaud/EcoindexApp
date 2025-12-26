@@ -1,4 +1,10 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type {
+    ISimpleUrlInput,
+    IAdvancedMesureData,
+    IKeyValue,
+    IJsonMesureData,
+} from '../interface'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
@@ -52,6 +58,41 @@ contextBridge.exposeInMainWorld('electronAPI', {
             ipcRenderer.removeAllListeners('display-splash-screen')
         }
     },
+    // Front → Main: Handlers pour les mesures
+    handleSimpleMesures: (
+        urlsList: ISimpleUrlInput[],
+        localAdvConfig: IAdvancedMesureData,
+        envVars: IKeyValue
+    ) =>
+        ipcRenderer.invoke('simple-mesures', urlsList, localAdvConfig, envVars),
+    handleJsonSaveAndCollect: (
+        jsonDatas: IJsonMesureData,
+        andCollect: boolean,
+        envVars: IKeyValue
+    ) => ipcRenderer.invoke('save-json-file', jsonDatas, andCollect, envVars),
+    handleJsonReadAndReload: () => ipcRenderer.invoke('read-reload-json-file'),
+    handleSelectFolder: () => ipcRenderer.invoke('dialog:select-folder'),
+    handleSelectPuppeteerFilePath: () =>
+        ipcRenderer.invoke('dialog:select-puppeteer-file'),
+    handleIsJsonConfigFileExist: (workDir: string) =>
+        ipcRenderer.invoke('is-json-config-file-exist', workDir),
+    // Main → Front: Écouter les données depuis le main
+    sendDatasToFront: (callback: (data: any) => void) => {
+        ipcRenderer.on('host-informations-back', (_event, data) =>
+            callback(data)
+        )
+        return () => {
+            ipcRenderer.removeAllListeners('host-informations-back')
+        }
+    },
+    changeLanguageInFront: (callback: (lng: string) => void) => {
+        ipcRenderer.on('change-language-to-front', (_event, lng: string) =>
+            callback(lng)
+        )
+        return () => {
+            ipcRenderer.removeAllListeners('change-language-to-front')
+        }
+    },
 })
 
 // --------- Expose store API (comme dans l'ancienne application) ---------
@@ -61,6 +102,13 @@ contextBridge.exposeInMainWorld('store', {
     get: (key: string, defaultValue?: unknown) =>
         ipcRenderer.invoke('store-get', key, defaultValue),
     delete: (key: string) => ipcRenderer.invoke('store-delete', key),
+})
+
+// --------- Expose versions API ---------
+contextBridge.exposeInMainWorld('versions', {
+    chrome: () => process.versions.chrome,
+    node: () => process.versions.node,
+    electron: () => process.versions.electron,
 })
 
 // --------- Expose initialization API ---------

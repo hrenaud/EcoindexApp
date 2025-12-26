@@ -13,6 +13,14 @@ import log from 'electron-log'
 import path from 'node:path'
 import pkg from '../../package.json'
 import { setMainWindow } from './memory'
+import {
+    handleSimpleCollect,
+    handleJsonSaveAndCollect,
+} from './handlers/HandleCollectAll'
+import { handleSelectFolder } from './handlers/HandleSelectFolder'
+import { handleSelectPuppeteerFilePath } from './handlers/HandleSelectPuppeteerFilePath'
+import { handleIsJsonConfigFileExist } from './handlers/HandleIsJsonConfigFileExist'
+import { handleJsonReadAndReload } from './handlers/HandleJsonReadAndReload'
 
 // Configuration de electron-log
 log.initialize()
@@ -122,6 +130,7 @@ function changeLanguage(lang: string) {
     // Notifier toutes les fenêtres
     BrowserWindow.getAllWindows().forEach((window) => {
         window.webContents.send('language-changed', lang)
+        window.webContents.send(channels.CHANGE_LANGUAGE_TO_FRONT, lang)
     })
     // Reconstruire le menu avec la nouvelle langue sélectionnée
     if (win) {
@@ -158,6 +167,47 @@ ipcMain.handle(
         return await initialization(_event, forceInitialisation)
     }
 )
+
+// Handlers IPC pour les mesures
+ipcMain.handle(
+    channels.SIMPLE_MESURES,
+    async (event, urlsList, localAdvConfig, envVars) => {
+        return await handleSimpleCollect(
+            event,
+            urlsList,
+            localAdvConfig,
+            envVars
+        )
+    }
+)
+
+ipcMain.handle(
+    channels.SAVE_JSON_FILE,
+    async (event, jsonDatas, andCollect, envVars) => {
+        return await handleJsonSaveAndCollect(
+            event,
+            jsonDatas,
+            andCollect,
+            envVars
+        )
+    }
+)
+
+ipcMain.handle(channels.READ_RELOAD_JSON_FILE, async (event) => {
+    return await handleJsonReadAndReload(event)
+})
+
+ipcMain.handle(channels.SELECT_FOLDER, async (event) => {
+    return await handleSelectFolder(event)
+})
+
+ipcMain.handle(channels.SELECT_PUPPETEER_FILE, async (event) => {
+    return await handleSelectPuppeteerFilePath(event)
+})
+
+ipcMain.handle(channels.IS_JSON_CONFIG_FILE_EXIST, async (event, workDir) => {
+    return await handleIsJsonConfigFileExist(event, workDir)
+})
 
 async function createWindow() {
     win = new BrowserWindow({
@@ -199,7 +249,7 @@ async function createWindow() {
         )
 
         // Lancer l'initialisation automatiquement depuis le main process
-        // Attendre un peu pour que la fenêtre soit complètement chargée
+        // Attendre un peu pour que la fenêtre soit complètement chargée et que les listeners soient enregistrés
         setTimeout(async () => {
             mainLog.info(
                 'Starting automatic initialization from main process...'
