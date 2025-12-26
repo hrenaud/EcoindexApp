@@ -9,23 +9,23 @@ import { useTranslation } from 'react-i18next'
 
 interface ILayout {
     datasFromHost: any
-    id?: string
     appReady?: boolean
     isFirstStart?: boolean
     isPuppeteerBrowserInstalled?: boolean
     workDir?: string
     homeDir?: string
     puppeteerBrowserInstalledVersion?: string
+    consoleMessages?: string
 }
 export const ConsoleApp: FC<ILayout> = ({
     datasFromHost,
-    id,
     appReady,
     isFirstStart,
     isPuppeteerBrowserInstalled,
     workDir,
     homeDir,
     puppeteerBrowserInstalledVersion,
+    consoleMessages = '',
 }) => {
     const copyToClipBoard = () => {
         navigator.clipboard.writeText(JSON.stringify(datasFromHost, null, 2))
@@ -56,12 +56,14 @@ export const ConsoleApp: FC<ILayout> = ({
             </summary>
 
             <div className="mt-4 flex w-full flex-col gap-4 first:w-fit">
+                {/* A Supprimer */}
                 <TypographyH3>{t('Console')}</TypographyH3>
                 <Textarea
-                    id={id}
                     className="h-36 text-muted-foreground"
                     readOnly
+                    value={consoleMessages}
                 ></Textarea>
+                {/* Fin de la zone à supprimer */}
                 <SimpleTooltip
                     tooltipContent={
                         <p>

@@ -72,6 +72,7 @@ function TheApp() {
         useState(false)
     const [showInformationSpinner, setShowInformationSpinner] = useState(true)
     const [envVars, setEnvVars] = useState<IKeyValue>({})
+    const [consoleMessages, setConsoleMessages] = useState<string>('')
     // #endregion
 
     const [urlsList, setUrlsList] = useState<InputField[]>([
@@ -101,6 +102,10 @@ function TheApp() {
     // region utils
 
     const timeOutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const handleConsoleMessageRef = useRef<
+        | ((_event: any, message: string, ...optionalParams: any[]) => void)
+        | null
+    >(null)
     /**
      * Utils, wait method.
      * @param {number} ms Milisecond of the timer.
@@ -408,6 +413,34 @@ function TheApp() {
         })
 
         /**
+         * Handler (main->front), get console messages from main via ASYNCHRONOUS_LOG
+         */
+        // Créer la fonction une seule fois et la stocker dans useRef
+        if (!handleConsoleMessageRef.current) {
+            handleConsoleMessageRef.current = (
+                _event: any,
+                message: string,
+                ...optionalParams: any[]
+            ) => {
+                const logMessage =
+                    optionalParams && optionalParams.length > 0
+                        ? `${message} ${optionalParams.join(' ')}`
+                        : message || ''
+                setConsoleMessages((prev) => {
+                    const timestamp = new Date().toLocaleTimeString()
+                    return `${prev}${prev ? '\n' : ''}[${timestamp}] ${logMessage}`
+                })
+            }
+        }
+
+        if (window.ipcRenderer && handleConsoleMessageRef.current) {
+            window.ipcRenderer.on(
+                'asynchronous-log',
+                handleConsoleMessageRef.current
+            )
+        }
+
+        /**
          * Handler (main->front), Change language from Menu.
          */
         window.electronAPI.changeLanguageInFront((lng: string) => {
@@ -498,6 +531,17 @@ function TheApp() {
                 }
             }
         )
+
+        // Cleanup: retirer l'écouteur IPC quand le composant se démonte ou se re-rend
+        return () => {
+            if (window.ipcRenderer && handleConsoleMessageRef.current) {
+                // Utiliser off avec la fonction stockée dans useRef
+                window.ipcRenderer.off(
+                    'asynchronous-log',
+                    handleConsoleMessageRef.current
+                )
+            }
+        }
     }, [t])
 
     /**
@@ -633,7 +677,6 @@ function TheApp() {
                         )}
                         {/* display here the echoReadable line */}
                         <ConsoleApp
-                            id="echo"
                             datasFromHost={datasFromHost}
                             appReady={appReady}
                             isFirstStart={isFirstStart}
@@ -645,6 +688,7 @@ function TheApp() {
                             puppeteerBrowserInstalledVersion={
                                 puppeteerBrowserInstalledVersion
                             }
+                            consoleMessages={consoleMessages}
                         />
                     </div>
                     <Footer
