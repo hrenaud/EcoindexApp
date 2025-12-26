@@ -1,7 +1,6 @@
 import { IpcMainEvent, IpcMainInvokeEvent, app, utilityProcess } from 'electron'
 
 import { ConfigData } from '../../../class/ConfigData'
-import { _sendMessageToFrontConsole } from '../../utils/SendMessageToFrontConsole'
 import { _sendMessageToFrontLog } from '../../utils/SendMessageToFrontLog'
 import { channels } from '../../../shared/constants'
 // import { checkIfMandatoryBrowserInstalled } from 'lighthouse-plugin-ecoindex-core/install-browser'
@@ -85,7 +84,6 @@ export const initPuppeteerBrowserIsInstalled = async (
                     const _data = data.toString().replace(all_last, '')
                     mainLog.debug(_data)
                     _sendMessageToFrontLog(_data)
-                    _sendMessageToFrontConsole(_data)
                 })
             }
 
