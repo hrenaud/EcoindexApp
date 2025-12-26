@@ -17,6 +17,14 @@ const extractAsarLib = async () => {
         return
     }
 
+    // Extraire lib.asar uniquement sur Windows
+    if (process.platform !== 'win32') {
+        mainLog.info(
+            `Extract ASAR file skipped (not Windows, using lib.asar directly)`
+        )
+        return
+    }
+
     const libPath = path.join(process.resourcesPath, 'lib')
     if (fs.existsSync(path.join(libPath, 'package.json'))) {
         mainLog.info(`Extract ASAR file skipped (lib folder already exists)`)
