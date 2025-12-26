@@ -97,5 +97,119 @@
   "Close this window": "Close this window",
   "Close": "Close",
   "Version of the application": "Version of the application",
-  "Open splash window...": "Open splash window..."
+  "Open splash window...": "Open splash window...",
+  "1. Select ouput folder": "1. Select ouput folder",
+  "2. Configuration of the courses": "2. Configuration of the courses",
+  "2. Urls to measure": "2. Urls to measure",
+  "3. Launch the measures": "3. Launch the measures",
+  "Specify where to execute the measures.": "Specify where to execute the measures.",
+  "Choose the type of measure you want to do.": "Choose the type of measure you want to do.",
+  "Browse": "Browse",
+  "Url(s) Measure (Simple mode)": "Url(s) Measure (Simple mode)",
+  "Courses Measure (Full mode)": "Courses Measure (Full mode)",
+  "Reload if too long": "...Reload",
+  "Application version:": "Application version:",
+  "Plugin version:": "Version of the Ecoindex measurement engine (lighthouse-plugin-ecoindex):",
+  "Internal Electron informations: Chrome": "Internal Electron informations: Chrome",
+  "and": "and",
+  "Desktop": "application",
+  "footer": {
+    "visite-website": {
+      "app": "Go consult the application website",
+      "plugin": "Go consult the Lighthouse-Plugin-Ecoindex plugin site"
+    }
+  },
+  "footerCopyright": "© {{ currentYear }} - Made with ❤️ and 🌱 by ",
+  "Show informations": "Show informations",
+  "Console": "Console",
+  "Copy application informations to clipboard.": "Copy application informations to clipboard.",
+  "Copy datas": "Copy datas",
+  "Configuration datas": "Configuration datas",
+  "First launch": "First launch",
+  "Error on Node": "Error on Node",
+  "Error on Node Version": "Error on Node Version",
+  "Permissions Error": "Permissions Error",
+  "Report error": "Report error",
+  "Install": "Install",
+  "Retry": "Retry",
+  "Upgrade": "Upgrade",
+  "Report": "Report",
+  "Urls to mesure": "Urls to mesure",
+  "Enter an url": "Enter an url",
+  "delete": "delete",
+  "add": "add",
+  "Add an URL": "Add an URL",
+  "Error adding a new input field": "Error adding a new input field",
+  "Error removing an input field": "Error removing an input field",
+  "Error updating the value of an input field": "Error updating the value of an input field",
+  "Course added": "Course added",
+  "Courses Measure (Full mode)": "Courses Measure (Full mode)",
+  "You must set 1 best-page on courses.": "You must set 1 best-page on courses.",
+  "You must set only 1 best-page on courses.": "You must set only 1 best-page on courses.",
+  "Reload the configuration": "Reload the configuration",
+  "reload": "reload",
+  "Reload": "Reload",
+  "Save the configuration": "Save the configuration",
+  "save": "save",
+  "Save": "Save",
+  "Courses": "Courses",
+  "Course": "Course",
+  "Delete this course": "Delete this course",
+  "Delete course": "Delete course",
+  "Course name": "Course name",
+  "Target": "Target",
+  "Description": "Description",
+  "Is best pages?": "Is best pages?",
+  "Add a course": "Add a course",
+  "Generates reports files in seleted dir.": "Generates reports files in seleted dir.",
+  "Launch the measures": "Launch the measures",
+  "Measures": "Measures",
+  "Simples measures with HTML output.": "Simples measures with HTML output.",
+  "simple-mesure": {
+    "urls": {
+      "title": "URLs"
+    }
+  },
+  "Generates Html reports in seleted dir.": "Generates Html reports in seleted dir.",
+  "Launch the measures": "Launch the measures",
+  "Measures": "Measures",
+  "Extra header": "Extra header",
+  "Header to add cookies, Authentication...": "Header to add cookies, Authentication...",
+  "Choose the reports you want to generate": "Choose the reports you want to generate",
+  "Statement": "Statement",
+  "(JSON output mandatory)": "(JSON output mandatory)",
+  "common": {
+    "audit": {
+      "audit-category": {
+        "title": "Choose the audits you want to make",
+        "seo": "SEO",
+        "performance": "Performance",
+        "accessibility": "Accessibility",
+        "best-practices": "Best practices"
+      }
+    }
+  },
+  "advConfiguration": {
+    "title": "Advanced configuration",
+    "title-title": "Click to open or close Advanced Setup",
+    "puppeteer": {
+      "title": "Use a custom Puppeteer scenario file",
+      "description": "Please fill in if you need to use a specific scenario, such as strong authentication. \nUse *.js, *.ts, *.mjs or *.cjs files (*.mjs is recommended).",
+      "help-link": "You will find more information on this subject in the help https://lighthouse-ecoindex.greenit.eco/guides/9-adv-conf/#utilisation-dun-fichier-de-script-puppeteer-custom",
+      "input": {
+        "aria": "Puppetter scenario file"
+      }
+    },
+    "envvar": {
+      "title": "Environment variables",
+      "description": "Environment variables to pass to the measurements script (for an identifier/password to use with the Puppeteer custom script, for example). \nThey will not be saved!"
+    }
+  },
+  "Enter a key": "Enter a key",
+  "Enter a value": "Enter a value",
+  "key-value": {
+    "add": {
+      "to": "Add an item to"
+    }
+  }
 }

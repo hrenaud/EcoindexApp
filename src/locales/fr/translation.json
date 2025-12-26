@@ -97,5 +97,119 @@
   "Close this window": "Fermer cette fenêtre",
   "Close": "Fermer",
   "Version of the application": "Version de l'application",
-  "Open splash window...": "Ouvrir la fenêtre d'accueil..."
+  "Open splash window...": "Ouvrir la fenêtre d'accueil...",
+  "1. Select ouput folder": "1. Sélectionner le dossier de génération",
+  "2. Configuration of the courses": "2. Configuration des parcours",
+  "2. Urls to measure": "2. URLs à mesurer",
+  "3. Launch the measures": "3. Lancer la mesure",
+  "Specify where to execute the measures.": "Indiquer où exécuter les mesures.",
+  "Choose the type of measure you want to do.": "Choisissez le type de mesure(s) que vous voulez réaliser",
+  "Browse": "Parcourir",
+  "Url(s) Measure (Simple mode)": "Mesure d'URLs (mode simple)",
+  "Courses Measure (Full mode)": "Mesure de parcours (mode complet)",
+  "Reload if too long": "...Recharger",
+  "Application version:": "Version de l'application:",
+  "Plugin version:": "Version du moteur de mesure Écoindex (lighthouse-plugin-ecoindex):",
+  "Internal Electron informations: Chrome": "Informations de l'application: Chrome",
+  "and": "et",
+  "Desktop": "application",
+  "footer": {
+    "visite-website": {
+      "app": "Aller consulter le site de l'application",
+      "plugin": "Aller consulter le site du plugin lighthouse-plugin-ecoindex"
+    }
+  },
+  "footerCopyright": "© {{ currentYear }} - Fabriqué avec ❤️ et 🌱 by ",
+  "Show informations": "Afficher les informations",
+  "Console": "Console",
+  "Copy application informations to clipboard.": "Copier les informations de l'application dans le Presse papier",
+  "Copy datas": "Copier les données",
+  "Configuration datas": "Informations de configuration",
+  "First launch": "Premier lancement",
+  "Error on Node": "Erreur avec Node",
+  "Error on Node Version": "Erreur de version de Node",
+  "Permissions Error": "Erreur de permission",
+  "Report error": "Rapport d'erreur",
+  "Install": "Installer",
+  "Retry": "Relancer",
+  "Upgrade": "Mettre à jour",
+  "Report": "Rapport",
+  "Urls to mesure": "Urls à mesurer",
+  "Enter an url": "Entrer une URL",
+  "delete": "supprimer",
+  "add": "ajouter",
+  "Add an URL": "Ajouter une URL",
+  "Error adding a new input field": "Erreur lors de l'ajout d'un nouvel élément",
+  "Error removing an input field": "Erreur lors de la suppression d'un élément",
+  "Error updating the value of an input field": "Erreur lors de la mise à jour d'un élément",
+  "Course added": "Parcours ajouté",
+  "Courses Measure (Full mode)": "Mesure de parcours (mode complet)",
+  "You must set 1 best-page on courses.": "Vous devez sélectionner 1 parcours de Meilleurs pages.",
+  "You must set only 1 best-page on courses.": "Vous devez sélectionner seulement 1 parcours de Meilleurs pages.",
+  "Reload the configuration": "Recharger la configuration",
+  "reload": "recharger",
+  "Reload": "Recharger",
+  "Save the configuration": "Sauvegarder la configuration",
+  "save": "sauvegarder",
+  "Save": "Enregistrer",
+  "Courses": "Parcours",
+  "Course": "Parcours",
+  "Delete this course": "Supprimer ce parcours",
+  "Delete course": "Supprimer le parcours",
+  "Course name": "Nom du parcours",
+  "Target": "Objectif",
+  "Description": "Description",
+  "Is best pages?": "Parcours des Meilleurs pages ?",
+  "Add a course": "Ajouter un parcours",
+  "Generates reports files in seleted dir.": "Génération des rapports dans le dossier sélectionné.",
+  "Launch the measures": "Lancer les mesures",
+  "Measures": "Mesures",
+  "Simples measures with HTML output.": "Mesures simples avec sortie HTML.",
+  "simple-mesure": {
+    "urls": {
+      "title": "URLs"
+    }
+  },
+  "Generates Html reports in seleted dir.": "Génération des rapports HTML dans le dossier sélectionné.",
+  "Launch the measures": "Lancer les mesures",
+  "Measures": "Mesures",
+  "Extra header": "Extra Header",
+  "Header to add cookies, Authentication...": "Header pour ajouter des Cookies, Authentification...",
+  "Choose the reports you want to generate": "Choisissez les rapports que vous souhaitez générer",
+  "Statement": "Déclaration",
+  "(JSON output mandatory)": "(génération en JSON est obligatoire)",
+  "common": {
+    "audit": {
+      "audit-category": {
+        "title": "Choisissez les audits que vous souhaitez réaliser",
+        "seo": "SEO",
+        "performance": "Performance",
+        "accessibility": "Accessibilité",
+        "best-practices": "Bonnes pratiques"
+      }
+    }
+  },
+  "advConfiguration": {
+    "title": "Configuration avancée",
+    "title-title": "Cliquez pour ouvrir ou fermer la Configuration avancée",
+    "puppeteer": {
+      "title": "Utilisez un fichier de scénario Puppeteer custom",
+      "description": "À renseigner si vous devez utiliser un scénarion spécififique, comme une authentification forte. Utiliser des fichies de types *.js, *.ts, *.mjs ou *.cjs (*.mjs est recommandé).",
+      "help-link": "Vous trouverez plus d'information à ce sujet sur l'aide https://lighthouse-ecoindex.greenit.eco/guides/9-adv-conf/#utilisation-dun-fichier-de-script-puppeteer-custom",
+      "input": {
+        "aria": "Fichier de scénario Puppetter"
+      }
+    },
+    "envvar": {
+      "title": "Variables d'environnement",
+      "description": "Variables d'environnement à passer au script de mesures (pour un identifiant/password à utiliser avec le script Puppeteer custom, par exemple). Elles ne seront pas sauvegardées !"
+    }
+  },
+  "Enter a key": "Entrer une clé",
+  "Enter a value": "Entrer une valeur",
+  "key-value": {
+    "add": {
+      "to": "Ajouter un élément à"
+    }
+  }
 }
