@@ -288,7 +288,18 @@ Pour garantir que toute l'interface (menu, bouton de langue, et contenu) se met 
     5. `App.tsx` reçoit `CHANGE_LANGUAGE_TO_FRONT` et met à jour i18n
     6. `LanguageSwitcher` écoute aussi `i18n.on('languageChanged')` pour synchroniser
 
-**Important** : Le composant `LanguageSwitcher` ne change plus directement la langue via `i18n.changeLanguage()` pour éviter les doubles changements (clignotement). Il délègue toujours au main process via IPC.
+**Important** : Le composant `LanguageSwitcher` est maintenant simplifié et utilise directement `i18n.language` comme source de vérité. Il ne maintient plus d'état local et délègue toujours le changement de langue au main process via IPC. Cela évite les conflits entre plusieurs sources de vérité et élimine le clignotement.
+
+**Architecture simplifiée** :
+
+- Le composant lit directement `i18n.language` via `useTranslation()`
+- Au clic, il appelle `window.electronAPI.changeLanguage(lang)`
+- Le main process change la langue et envoie `CHANGE_LANGUAGE_TO_FRONT`
+- `App.tsx` reçoit l'événement et met à jour i18n via `i18nResources.changeLanguage()`
+- `i18n.language` est mis à jour automatiquement
+- Le composant se re-rend automatiquement grâce à `useTranslation()`
+
+Plus de `useEffect` redondants, plus d'état local, plus de conflits.
 
 ### Popin d'initialisation
 
