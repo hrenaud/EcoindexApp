@@ -38,6 +38,5 @@ export const convertJSONDatasFromString = (
         )
         jsonDatas.courses[index].urls = urls
     })
-    // console.log(`_convertJSONDatasFromString`, output)
     return output
 }

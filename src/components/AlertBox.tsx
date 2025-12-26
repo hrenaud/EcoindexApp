@@ -13,15 +13,14 @@ export const AlertBox: FC<ILayout> = ({
     title,
     variant = 'destructive',
 }) => {
-    let _variant: string
-    if (variant === 'bug') {
-        _variant = 'destructive'
-    } else {
-        _variant = variant
-    }
+    // Convertir 'bug' en 'destructive' pour le composant Alert
+    const alertVariant: 'default' | 'destructive' =
+        variant === 'bug' ? 'destructive' : variant
     return (
-        // @ts-ignore
-        <Alert variant={_variant} className="bg-card dark:text-card-foreground">
+        <Alert
+            variant={alertVariant}
+            className="bg-card dark:text-card-foreground"
+        >
             {variant === 'destructive' && <AlertCircle className="size-4" />}
             {variant === 'default' && <RocketIcon className="size-4" />}
             {variant === 'bug' && <Bug className="size-4" />}

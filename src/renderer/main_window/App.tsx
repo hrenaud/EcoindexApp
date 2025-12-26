@@ -498,7 +498,7 @@ function TheApp() {
                 }
             }
         )
-    }, [])
+    }, [t])
 
     /**
      * Detect workDir change.
