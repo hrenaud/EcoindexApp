@@ -1,22 +1,17 @@
 import { FC, ReactNode } from 'react'
 
-import { Progress } from './ui/progress'
 import { cn } from '@/lib/utils'
 
 export interface ILayout {
     children: ReactNode
     id?: string
-    progress: number
     className?: string
-    showProgress?: boolean
     footer?: ReactNode
 }
 export const PopinLoading: FC<ILayout> = ({
     id,
     children,
-    progress,
     className,
-    showProgress = false,
     footer,
 }) => {
     return (
@@ -35,9 +30,6 @@ export const PopinLoading: FC<ILayout> = ({
                     >
                         {children}
                     </div>
-                    {showProgress && (
-                        <Progress value={progress} className="h-2 w-full" />
-                    )}
                     {footer}
                 </div>
             </div>

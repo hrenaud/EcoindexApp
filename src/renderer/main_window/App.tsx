@@ -31,7 +31,6 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { LinuxUpdate } from '@/class/LinuxUpdate'
 import { MySkeleton } from '@/components/MySkeleton'
 import { PopinLoading } from '@/components/PopinLoading'
-import { ReloadIcon } from '@radix-ui/react-icons'
 import { SimplePanMesure } from '@/components/SimplePanMesure'
 import { SplashScreen } from '@/components/SplashScreen'
 import { TypographyP } from '@/components/ui/typography/TypographyP'
@@ -45,7 +44,6 @@ const frontLog = log.scope('front/App')
 
 function TheApp() {
     // #region useState, useTranslation
-    const [progress] = useState(0)
     const [isJsonFromDisk, setIsJsonFromDisk] = useState(false)
     const [workDir, setWorkDir] = useState('loading...')
     const [homeDir, setHomeDir] = useState('loading...')
@@ -710,8 +708,6 @@ function TheApp() {
             {displayPopin && (
                 <PopinLoading
                     id="loadingPopin"
-                    progress={progress}
-                    showProgress={!appReady}
                     className="flex !flex-col items-center"
                     footer={
                         displayReloadButton && (
@@ -727,10 +723,9 @@ function TheApp() {
                         )
                     }
                 >
-                    <div className="flex flex-nowrap items-center">
-                        <ReloadIcon className="mr-2 size-4 animate-spin" />
-                        <p id="counter">{popinText}</p>
-                    </div>
+                    <TypographyP className="text-center">
+                        {popinText}
+                    </TypographyP>
                 </PopinLoading>
             )}
             <SplashScreen

@@ -1,6 +1,5 @@
 import { FC, ReactNode } from 'react'
 
-import { Progress } from './ui/progress'
 import { ReloadIcon } from '@radix-ui/react-icons'
 import { cn } from '@/lib/utils'
 
@@ -9,10 +8,8 @@ export interface InformationPopinProps {
     id?: string
     display: boolean
     title: string
-    progress?: number
     className?: string
     showSpinner?: boolean
-    showProgress?: boolean
     footer?: ReactNode
     isAlert?: boolean
     errorLink?: {
@@ -26,10 +23,8 @@ export const InformationPopin: FC<InformationPopinProps> = ({
     children,
     display,
     title,
-    progress,
     className,
     showSpinner = false,
-    showProgress = false,
     footer,
     errorLink: _errorLink,
     isAlert = false,
@@ -37,12 +32,12 @@ export const InformationPopin: FC<InformationPopinProps> = ({
     if (!display) return null
 
     return (
-        <div id={id} className="fixed top-0 left-0 z-50 h-screen w-screen">
-            <div className="bg-background/70 absolute h-full w-full"></div>
+        <div id={id} className="fixed left-0 top-0 z-50 h-screen w-screen">
+            <div className="absolute h-full w-full bg-background/70"></div>
             <div className="absolute grid h-full w-full place-content-center p-4">
                 <div
                     className={cn(
-                        'border-primary bg-background shadow-primary/50 relative flex w-full max-w-[600px] min-w-[300px] flex-col items-center gap-2 rounded-md border px-6 py-4 shadow-lg',
+                        'relative flex w-full min-w-[300px] max-w-[600px] flex-col items-center gap-2 rounded-md border border-primary bg-background px-6 py-4 shadow-lg shadow-primary/50',
                         isAlert && 'border-red-500 bg-red-500/10',
                         className
                     )}
@@ -64,11 +59,6 @@ export const InformationPopin: FC<InformationPopinProps> = ({
                     <div className="flex w-full flex-col items-center text-center">
                         {children}
                     </div>
-                    {showProgress && (
-                        <div className="flex w-full items-center">
-                            <Progress value={progress} className="h-2 w-full" />
-                        </div>
-                    )}
                     {footer}
                 </div>
             </div>
