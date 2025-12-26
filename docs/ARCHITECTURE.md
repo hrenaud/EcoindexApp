@@ -268,24 +268,77 @@ src/extraResources/
 - **Développement** : `src/extraResources/`
 - **Production** : `process.resourcesPath` (configuré dans `forge.config.js`)
 
-### Extraction ASAR (Windows)
+### Extraction ASAR (Windows uniquement)
 
-Sur Windows, `lib.asar` est automatiquement extrait vers `lib/` car les archives ASAR ne peuvent pas être lues directement par les processus utilitaires.
+Sur **Windows uniquement**, `lib.asar` est automatiquement extrait vers `lib/` pendant l'initialisation car les archives ASAR ne peuvent pas être lues directement par `utilityProcess.fork` sur cette plateforme.
+
+Sur **macOS et Linux**, `lib.asar` est utilisé directement sans extraction, car `utilityProcess.fork` peut accéder aux fichiers à l'intérieur de l'archive ASAR.
+
+**Fichier responsable** : `src/main/handlers/initHandlers/HandleExtractAsarLib.ts`
 
 ### Scripts utilitaires
 
-Les scripts dans `lib/` sont exécutés via `utilityProcess` :
+Les scripts dans `lib/` sont exécutés via `utilityProcess.fork` :
 
 - `browser_isInstalled.mjs` : Vérifie si le navigateur Puppeteer est installé
 - `browser_install.mjs` : Installe le navigateur Puppeteer
-- `courses_index.mjs` : Gère l'indexation des parcours
+- `courses_index.mjs` : Gère l'exécution des mesures (simple et complexe)
 
-#### Chemin des scripts
+#### Résolution des chemins des scripts
 
-- **Développement** : `process.cwd()/lib/`
-- **Production** :
-    - Windows : `process.resourcesPath/../lib/` (après extraction)
-    - macOS/Linux : `process.resourcesPath/lib.asar/`
+La résolution des chemins suit une logique cohérente dans tous les handlers (`HandleCollectAll.ts`, `puppeteerBrowser_installation.ts`, etc.) :
+
+**1. Détection de l'environnement** :
+
+```typescript
+if (!app.isPackaged || process.env['WEBPACK_SERVE'] === 'true') {
+    // Mode développement
+} else if (process.resourcesPath) {
+    // Mode production
+} else {
+    // Fallback
+}
+```
+
+**2. Chemins selon l'environnement** :
+
+- **Développement** (`!app.isPackaged || WEBPACK_SERVE === 'true'`) :
+    - `__dirname/../../lib/` (chemin relatif depuis le fichier compilé)
+    - Ou `process.cwd()/lib/` (selon le handler)
+
+- **Production** (`process.resourcesPath` disponible) :
+    - **Windows** : `process.resourcesPath/lib/` (après extraction de `lib.asar`)
+    - **macOS/Linux** : `process.resourcesPath/lib.asar/` (accès direct à l'archive)
+
+**3. Vérification de `process.resourcesPath`** :
+
+Avant d'utiliser `process.resourcesPath`, il est **toujours vérifié** qu'il existe, car il n'est disponible qu'en production packagée. Un fallback vers le chemin de développement est utilisé si nécessaire.
+
+**Exemple d'implémentation** :
+
+```typescript
+let pathToScript: string
+if (!app.isPackaged || process.env['WEBPACK_SERVE'] === 'true') {
+    // Développement
+    pathToScript = path.join(__dirname, '..', '..', 'lib', 'courses_index.mjs')
+} else if (process.resourcesPath) {
+    // Production
+    pathToScript = path.join(
+        process.resourcesPath,
+        process.platform === 'win32' ? 'lib' : 'lib.asar',
+        'courses_index.mjs'
+    )
+} else {
+    // Fallback
+    pathToScript = path.join(__dirname, '..', '..', 'lib', 'courses_index.mjs')
+}
+```
+
+**Fichiers concernés** :
+
+- `src/main/handlers/HandleCollectAll.ts` : Exécution des mesures
+- `src/main/handlers/initHandlers/puppeteerBrowser_installation.ts` : Installation Puppeteer
+- `src/main/handlers/initHandlers/puppeteerBrowser_isInstalled.ts` : Vérification Puppeteer
 
 ## Points techniques importants
 
@@ -293,6 +346,8 @@ Les scripts dans `lib/` sont exécutés via `utilityProcess` :
 
 - En développement : `process.cwd()` ou `APP_ROOT`
 - En production : `process.resourcesPath` (configuré par Electron Forge)
+
+**Important** : Toujours vérifier `process.resourcesPath` avant utilisation, car il n'existe qu'en production packagée. Utiliser `app.isPackaged` ou `process.env['WEBPACK_SERVE']` pour détecter l'environnement. Voir la section "Résolution des chemins des scripts" pour un exemple d'implémentation.
 
 ### Initialisation i18next
 
@@ -327,9 +382,10 @@ Le menu Electron est construit dynamiquement avec les traductions i18next et se 
 
 ### Scripts utilitaires
 
-- Exécutés via `utilityProcess` (isolés du main process)
+- Exécutés via `utilityProcess.fork` (isolés du main process)
 - Communication via messages IPC
 - Gestion des erreurs et logs stdout/stderr
+- Résolution des chemins standardisée (voir section "Résolution des chemins des scripts" ci-dessus)
 
 ### Logging
 

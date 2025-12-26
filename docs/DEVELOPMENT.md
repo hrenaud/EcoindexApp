@@ -274,12 +274,91 @@ Le composant `InformationPopin` affiche les messages d'initialisation dans le re
 
 **Exemple d'utilisation** : Voir `src/renderer/main_window/App.tsx` pour une implémentation complète.
 
-### Scripts utilitaires
+### Scripts utilitaires et résolution des chemins
 
-Les scripts dans `lib/` sont exécutés via `utilityProcess`. Le chemin doit être correct :
+Les scripts dans `lib/` sont exécutés via `utilityProcess.fork`. La résolution des chemins suit une logique standardisée dans tous les handlers.
 
-- Développement : `process.cwd()/lib/`
-- Production : `process.resourcesPath/lib.asar/` (macOS/Linux) ou `process.resourcesPath/../lib/` (Windows)
+#### Détection de l'environnement
+
+La détection du mode développement/production utilise deux critères :
+
+1. **`app.isPackaged`** : Indique si l'application est packagée (production)
+2. **`process.env['WEBPACK_SERVE'] === 'true'`** : Indique si le serveur de développement Vite est actif
+
+**Logique de détection** :
+
+```typescript
+if (!app.isPackaged || process.env['WEBPACK_SERVE'] === 'true') {
+    // Mode développement
+} else if (process.resourcesPath) {
+    // Mode production
+} else {
+    // Fallback (développement)
+}
+```
+
+#### Chemins selon l'environnement
+
+**Développement** :
+
+- `__dirname/../../lib/` (chemin relatif depuis le fichier compilé)
+- Ou `process.cwd()/lib/` (selon le handler)
+
+**Production** :
+
+- **Windows** : `process.resourcesPath/lib/` (après extraction de `lib.asar` pendant l'initialisation)
+- **macOS/Linux** : `process.resourcesPath/lib.asar/` (accès direct à l'archive, pas d'extraction nécessaire)
+
+#### Vérification de `process.resourcesPath`
+
+**Important** : `process.resourcesPath` n'existe qu'en production packagée. Il doit **toujours être vérifié** avant utilisation :
+
+```typescript
+if (process.resourcesPath) {
+    // Utiliser process.resourcesPath
+} else {
+    // Fallback vers le chemin de développement
+}
+```
+
+#### Extraction de `lib.asar` (Windows uniquement)
+
+Sur Windows, `lib.asar` est automatiquement extrait vers `lib/` pendant l'initialisation par `HandleExtractAsarLib.ts`. Cette extraction est **uniquement nécessaire sur Windows** car `utilityProcess.fork` ne peut pas accéder directement aux fichiers dans `lib.asar` sur cette plateforme.
+
+Sur macOS/Linux, aucune extraction n'est nécessaire car `utilityProcess.fork` peut accéder directement aux fichiers dans `lib.asar`.
+
+#### Exemple d'implémentation standardisée
+
+Tous les handlers utilisent la même logique pour garantir la cohérence :
+
+```typescript
+let pathToScript: string
+if (!app.isPackaged || process.env['WEBPACK_SERVE'] === 'true') {
+    // En développement : utiliser le dossier lib du projet
+    pathToScript = path.join(__dirname, '..', '..', 'lib', 'courses_index.mjs')
+    mainLog.debug(`Using development path: ${pathToScript}`)
+} else if (process.resourcesPath) {
+    // En production packagée : utiliser process.resourcesPath
+    pathToScript = path.join(
+        process.resourcesPath,
+        process.platform === 'win32' ? 'lib' : 'lib.asar',
+        'courses_index.mjs'
+    )
+    mainLog.debug(`Using production path: ${pathToScript}`)
+} else {
+    // Fallback : utiliser le dossier lib du projet
+    pathToScript = path.join(__dirname, '..', '..', 'lib', 'courses_index.mjs')
+    mainLog.warn(
+        `process.resourcesPath not available, using fallback: ${pathToScript}`
+    )
+}
+```
+
+**Fichiers utilisant cette logique** :
+
+- `src/main/handlers/HandleCollectAll.ts`
+- `src/main/handlers/initHandlers/puppeteerBrowser_installation.ts`
+- `src/main/handlers/initHandlers/puppeteerBrowser_isInstalled.ts`
 
 ### Variables d'environnement
 
