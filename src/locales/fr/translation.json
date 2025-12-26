@@ -185,7 +185,11 @@
         "seo": "SEO",
         "performance": "Performance",
         "accessibility": "Accessibilité",
-        "best-practices": "Bonnes pratiques"
+        "best-practices": "Bonnes pratiques",
+        "lighthouse-plugin-ecoindex-core": "Écoindex Core",
+        "ecoindex-core": {
+          "mandatory": "(obligatoire)"
+        }
       }
     }
   },
