@@ -301,6 +301,68 @@ Pour garantir que toute l'interface (menu, bouton de langue, et contenu) se met 
 
 Plus de `useEffect` redondants, plus d'état local, plus de conflits.
 
+### Affichage des messages de console
+
+Le composant `ConsoleApp` affiche les messages envoyés depuis le main process via `_sendMessageToFrontConsole()` dans un `Textarea`.
+
+**Flux** :
+
+1. Le main process appelle `_sendMessageToFrontConsole(message, ...optionalParams)`
+2. Cela envoie un événement IPC `asynchronous-log` au renderer
+3. `App.tsx` écoute cet événement via `window.ipcRenderer.on('asynchronous-log', ...)`
+4. Les messages sont accumulés dans l'état `consoleMessages` avec un timestamp
+5. `ConsoleApp` reçoit `consoleMessages` via une prop et l'affiche dans le `Textarea`
+
+**Gestion du cleanup** :
+
+Pour éviter les messages dupliqués lors des re-renders, la fonction de callback est stockée dans un `useRef` :
+
+```typescript
+const handleConsoleMessageRef = useRef<
+    ((_event: any, message: string, ...optionalParams: any[]) => void) | null
+>(null)
+
+useEffect(() => {
+    // Créer la fonction une seule fois
+    if (!handleConsoleMessageRef.current) {
+        handleConsoleMessageRef.current = (
+            _event,
+            message,
+            ...optionalParams
+        ) => {
+            const logMessage =
+                optionalParams && optionalParams.length > 0
+                    ? `${message} ${optionalParams.join(' ')}`
+                    : message || ''
+            setConsoleMessages((prev) => {
+                const timestamp = new Date().toLocaleTimeString()
+                return `${prev}${prev ? '\n' : ''}[${timestamp}] ${logMessage}`
+            })
+        }
+    }
+
+    // Ajouter l'écouteur
+    if (window.ipcRenderer && handleConsoleMessageRef.current) {
+        window.ipcRenderer.on(
+            'asynchronous-log',
+            handleConsoleMessageRef.current
+        )
+    }
+
+    // Cleanup: retirer l'écouteur avec la même référence
+    return () => {
+        if (window.ipcRenderer && handleConsoleMessageRef.current) {
+            window.ipcRenderer.off(
+                'asynchronous-log',
+                handleConsoleMessageRef.current
+            )
+        }
+    }
+}, [t])
+```
+
+**Important** : `window.ipcRenderer` n'a pas de méthode `removeAllListeners()`. Il faut utiliser `off()` avec la même référence de fonction pour retirer l'écouteur correctement. Cela garantit qu'il n'y a qu'un seul écouteur actif à la fois et évite les messages dupliqués.
+
 ### Popin d'initialisation
 
 Le composant `InformationPopin` affiche les messages d'initialisation dans le renderer. Pour l'utiliser :

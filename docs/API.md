@@ -165,6 +165,62 @@ Récupère la langue actuellement sauvegardée.
 
 Notification envoyée à toutes les fenêtres lors d'un changement de langue.
 
+#### `asynchronous-log`
+
+**Direction** : Main → Renderer  
+**Type** : `webContents.send`  
+**Payload** : `string` (message), `...any[]` (paramètres optionnels)
+
+Notification envoyée pour afficher des messages de console dans le composant `ConsoleApp`. Les messages sont affichés dans le `Textarea` avec un timestamp.
+
+**Utilisation dans le renderer** :
+
+```typescript
+// Dans App.tsx - Utiliser useRef pour conserver la référence de la fonction
+const handleConsoleMessageRef = useRef<
+    ((_event: any, message: string, ...optionalParams: any[]) => void) | null
+>(null)
+
+useEffect(() => {
+    // Créer la fonction une seule fois
+    if (!handleConsoleMessageRef.current) {
+        handleConsoleMessageRef.current = (
+            _event,
+            message,
+            ...optionalParams
+        ) => {
+            const logMessage =
+                optionalParams && optionalParams.length > 0
+                    ? `${message} ${optionalParams.join(' ')}`
+                    : message || ''
+            setConsoleMessages((prev) => {
+                const timestamp = new Date().toLocaleTimeString()
+                return `${prev}${prev ? '\n' : ''}[${timestamp}] ${logMessage}`
+            })
+        }
+    }
+
+    if (window.ipcRenderer && handleConsoleMessageRef.current) {
+        window.ipcRenderer.on(
+            'asynchronous-log',
+            handleConsoleMessageRef.current
+        )
+    }
+
+    // Cleanup: retirer l'écouteur avec la même référence
+    return () => {
+        if (window.ipcRenderer && handleConsoleMessageRef.current) {
+            window.ipcRenderer.off(
+                'asynchronous-log',
+                handleConsoleMessageRef.current
+            )
+        }
+    }
+}, [t])
+```
+
+**Note importante** : Utiliser `useRef` pour conserver la référence de la fonction de callback permet de retirer correctement l'écouteur avec `off()` et d'éviter les messages dupliqués lors des re-renders. `window.ipcRenderer` n'a pas de méthode `removeAllListeners()`.
+
 ### Mises à jour Linux
 
 #### `alert-linux-update`
