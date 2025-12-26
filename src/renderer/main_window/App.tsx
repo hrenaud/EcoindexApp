@@ -1,10 +1,3 @@
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-
-import { DarkModeSwitcher } from '@/components/DarkModeSwitcher'
-import { LanguageSwitcher } from '@/components/LanguageSwitcher'
-import { SplashScreen } from '@/components/SplashScreen'
-import { Button } from '@/components/ui/button'
 import {
     Card,
     CardContent,
@@ -12,78 +5,506 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card'
+import type {
+    IAdvancedMesureData,
+    IJsonMesureData,
+    IKeyValue,
+} from '@/interface'
+import { InitalizationMessage, InputField } from '@/types'
+import { Route, MemoryRouter as Router, Routes } from 'react-router-dom'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { store as storeConstants, utils } from '@/shared/constants'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { ConfigData } from '@/class/ConfigData'
+import { ConsoleApp } from '@/components/ConsoleApp'
+import { DarkModeSwitcher } from '@/components/DarkModeSwitcher'
+import { Footer } from '@/components/Footer'
+import { Header } from '@/components/Header'
 import { InformationPopin } from '@/components/InformationPopin'
-import type { InitalizationMessage } from '@/types'
+import { InitErrorAlerts } from '@/components/InitErrorAlerts'
+import { InitalizationData } from '@/class/InitalizationData'
+import { Input } from '@/components/ui/input'
+import { JsonPanMesure } from '@/components/JsonPanMesure'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { LinuxUpdate } from '@/class/LinuxUpdate'
+import { MySkeleton } from '@/components/MySkeleton'
+import { PopinLoading } from '@/components/PopinLoading'
+import { ReloadIcon } from '@radix-ui/react-icons'
+import { SimplePanMesure } from '@/components/SimplePanMesure'
+import { SplashScreen } from '@/components/SplashScreen'
+import { TypographyP } from '@/components/ui/typography/TypographyP'
 import { cn } from '@/lib/utils'
+import i18nResources from '@/configs/i18nResources'
+import log from 'electron-log/renderer'
+import packageJson from '../../../package.json'
+import { useTranslation } from 'react-i18next'
 
-function App() {
-    const [count, setCount] = useState(0)
-    const { t } = useTranslation()
+const frontLog = log.scope('front/App')
 
-    // États pour la popin d'initialisation
+function TheApp() {
+    // #region useState, useTranslation
+    const [progress] = useState(0)
+    const [isJsonFromDisk, setIsJsonFromDisk] = useState(false)
+    const [workDir, setWorkDir] = useState('loading...')
+    const [homeDir, setHomeDir] = useState('loading...')
+    const [appReady, setAppReady] = useState(false)
+    const [datasFromHost, setDatasFromHost] = useState({})
+    const [displayPopin, setDisplayPopin] = useState(false)
+    const [popinText, setPopinText] = useState('')
+    const [isFirstStart, setIsFirstStart] = useState(true)
+    const [isPuppeteerBrowserInstalled, setIsPuppeteerBrowserInstalled] =
+        useState(false)
+    const [
+        puppeteerBrowserInstalledVersion,
+        setPuppeteerBrowserInstalledVersion,
+    ] = useState('loading...')
+
+    const [displayReloadButton, setDisplayReloadButton] = useState(false)
+    // #region displayInformationPopin
     const [displayInformationPopin, setDisplayInformationPopin] =
         useState(false)
     const [informationPopinTitle, setInformationPopinTitle] = useState('')
-    const [informationPopinMessage, setInformationPopinMessage] = useState('')
-    const [informationPopinErrorLink, setInformationPopinErrorLink] = useState<{
-        label: string
-        url: string
-    }>({
+    const [informationPopinErrorLink, setInformationPopinErrorLink] = useState({
         label: '',
         url: '',
     })
+    const [informationPopinMessage, setInformationPopinMessage] = useState('')
     const [informationPopinIsAlert, setInformationPopinIsAlert] =
         useState(false)
     const [showInformationSpinner, setShowInformationSpinner] = useState(true)
-    const [initializationProgress, setInitializationProgress] = useState(0)
-    const [initializationSteps, setInitializationSteps] = useState(0)
+    const [envVars, setEnvVars] = useState<IKeyValue>({})
+    // #endregion
 
-    // Écouter les messages d'initialisation
+    const [urlsList, setUrlsList] = useState<InputField[]>([
+        { value: 'https://www.ecoindex.fr/' },
+        { value: 'https://www.ecoindex.fr/a-propos/' },
+    ])
+    const [jsonDatas, setJsonDatas] = useState<IJsonMesureData>(
+        utils.DEFAULT_JSON_DATA
+    )
+    const [localAdvConfig, setLocalAdvConfig] = useState<IAdvancedMesureData>(
+        utils.DEFAULT_ADV_CONFIG
+    )
+
+    const { t } = useTranslation()
+
+    // Debug: Log component render
     useEffect(() => {
-        const unsubscribe = window.initialisationAPI.sendInitializationMessages(
-            async (message: InitalizationMessage) => {
-                console.log('Initialization message received:', message)
+        frontLog.debug('TheApp component rendered', {
+            appReady,
+            workDir,
+            homeDir,
+        })
+    }, [appReady, workDir, homeDir])
 
-                // Gérer les messages de type 'data' et 'message'
+    // endregion
+
+    // region utils
+
+    const timeOutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    /**
+     * Utils, wait method.
+     * @param {number} ms Milisecond of the timer.
+     * @param {boolean} clear clear and stop the timer.
+     * @returns Promise<unknown>
+     */
+    async function _sleep(ms: number, clear = false) {
+        if (clear) {
+            frontLog.debug(`sleep cleared.`)
+            if (timeOutRef.current) {
+                clearTimeout(timeOutRef.current)
+                timeOutRef.current = null
+            }
+            return
+        }
+        return new Promise((resolve) => {
+            frontLog.debug(`wait ${ms / 1000}s`)
+            if (timeOutRef.current) {
+                clearTimeout(timeOutRef.current)
+                frontLog.debug(`sleep reseted.`)
+            }
+            timeOutRef.current = setTimeout(resolve, ms)
+        })
+    }
+
+    /**
+     * Notify user.
+     * @param title string
+     * @param options any
+     */
+    const showNotification = (title: string, options: any) => {
+        const _t = title === '' ? packageJson.productName : title
+        new window.Notification(_t, options)
+    }
+
+    // #endregion
+
+    // region popin
+    /**
+     * Necessary display waiting popin.
+     * @param block boolean
+     */
+    const blockScrolling = (block = true) => {
+        const body = document.getElementsByTagName(
+            `body`
+        )[0] as unknown as HTMLBodyElement
+        body.style.overflowY = block ? 'hidden' : 'auto'
+    }
+
+    useEffect(() => {
+        window.electronAPI.displaySplashScreen((visibility = true) => {
+            blockScrolling(visibility)
+        })
+    }, [])
+
+    /**
+     * Show/Hide waiting popin during process.
+     * @param value string | boolean
+     */
+    const showHidePopinDuringProcess = async (value: string | boolean) => {
+        if (typeof value === 'string') {
+            setPopinText(value)
+            setDisplayPopin(true)
+            blockScrolling(true)
+            window.scrollTo(0, 0)
+        } else if (value === true) {
+            setPopinText(`Done 🎉`)
+            await _sleep(2000)
+            setDisplayPopin(false)
+            blockScrolling(false)
+        } else {
+            setPopinText(`Error 🚫`)
+            await _sleep(4000)
+            setDisplayPopin(false)
+            blockScrolling(false)
+        }
+    }
+
+    // #endregion
+
+    // #region handlers
+    /**
+     * Handler, launch simple mesure with the plugin.
+     * @returns Promise<void>
+     */
+    const runSimpleMesures = async () => {
+        frontLog.debug('Simple measures clicked')
+        if (workDir === homeDir) {
+            if (
+                !confirm(
+                    `${t(
+                        'Are you shure to want create report(s) in your default folder?'
+                    )}\n\rDestination: ${homeDir}`
+                )
+            )
+                return
+        }
+        setDisplayReloadButton(false)
+        showHidePopinDuringProcess(
+            `${t('Url(s) Measure (Simple mode)')} started 🚀`
+        )
+        try {
+            await window.electronAPI.handleSimpleMesures(
+                urlsList,
+                localAdvConfig,
+                envVars
+            )
+            showHidePopinDuringProcess(true)
+        } catch (error) {
+            frontLog.error('Error on runSimpleMesures', error)
+            showNotification('', {
+                body: t('Error on runSimpleMesures'),
+                subtitle: t('Courses Measure (Simple mode)'),
+            })
+            showHidePopinDuringProcess(false)
+        }
+    }
+
+    /**
+     * Handler, Read and Reload the Json configuration for mesures of parcours. Relaunched when workDir change.
+     */
+    const runJsonReadAndReload = useCallback(async () => {
+        frontLog.log('Json read and reload')
+        try {
+            const _jsonDatas: IJsonMesureData =
+                await window.electronAPI.handleJsonReadAndReload()
+            frontLog.debug(`runJsonReadAndReload`, _jsonDatas)
+            if (_jsonDatas) {
+                setJsonDatas(_jsonDatas)
+                setIsJsonFromDisk(true)
+            } else {
+                setIsJsonFromDisk(false)
+            }
+        } catch (error) {
+            frontLog.error('Error on runJsonReadAndReload', error)
+            showNotification('', {
+                subtitle: '🚫 Courses Measure (Full mode)',
+                body: 'Error on runJsonReadAndReload',
+            })
+        }
+    }, [])
+
+    /**
+     * Handler, launch measures of parcours.
+     * 1. Save Json configuration in workDir.
+     * 2. Launch measures with the plugin.
+     * @param saveAndCollect boolean
+     * @returns Promise<void>
+     */
+    const runJsonSaveAndCollect = async (
+        saveAndCollect = false,
+        envVars: IKeyValue = {}
+    ) => {
+        frontLog.debug('Json save clicked')
+        if (workDir === homeDir) {
+            if (
+                !confirm(
+                    t(
+                        `Are you shure to want create report(s) in your default folder?\n\rDestination: {{homeDir}}`,
+                        { homeDir }
+                    )
+                )
+            )
+                return
+        }
+        setDisplayReloadButton(false)
+        showHidePopinDuringProcess(
+            `${t('Courses Measure (Full mode)')} started 🚀`
+        )
+        try {
+            frontLog.debug(`jsonDatas`, jsonDatas)
+            frontLog.debug(`saveAndCollect`, saveAndCollect)
+            await window.electronAPI.handleJsonSaveAndCollect(
+                jsonDatas,
+                saveAndCollect,
+                envVars
+            )
+            showHidePopinDuringProcess(true)
+        } catch (error) {
+            frontLog.error('Error on runJsonSaveAndCollect', error)
+            showNotification('', {
+                subtitle: t('🚫 Courses Measure (Full mode)'),
+                body: t('Error on runJsonSaveAndCollect'),
+            })
+            showHidePopinDuringProcess(false)
+        }
+    }
+
+    /**
+     * Handlers, notify user.
+     * @param title string
+     * @param message string
+     */
+    const handlerJsonNotify = (title: string, message: string) => {
+        frontLog.debug('Json notify clicked')
+        showNotification('', { body: message, subtitle: title })
+    }
+
+    /**
+     * Handler for selecting workDir.
+     */
+    const selectWorkingFolder = async () => {
+        const filePath = await window.electronAPI.handleSelectFolder()
+
+        if (filePath !== undefined) {
+            setWorkDir(filePath)
+        }
+    }
+
+    /**
+     * Handlers, force window refresh
+     */
+    const forceRefresh = () => {
+        // getMainWindow().webContents.reload()
+        window.location.reload()
+    }
+
+    // #endregion
+
+    // #region initialisationAPI
+    /**
+     * Init and Reset Reload Button.
+     * @param clear Reset counter
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _initReloadButton = async (clear = false) => {
+        const waitSeconds = 90
+        setDisplayReloadButton(false)
+        await _sleep(waitSeconds * 1000, clear)
+        setDisplayReloadButton(true)
+    }
+
+    /**
+     * Launch Initialization.
+     * @param forceInitialisation
+     */
+    const launchInitialization = async (forceInitialisation: boolean) => {
+        frontLog.debug(`initializeApplication start 🚀`)
+        if (
+            forceInitialisation ||
+            (await window.store.get(storeConstants.APP_INSTALLED_ONCE, false))
+        )
+            setIsFirstStart(false)
+        const result =
+            await window.initialisationAPI.initializeApplication(
+                forceInitialisation
+            )
+        frontLog.debug(
+            `initializeApplication ended with ${result ? 'OK 👍' : 'KO 🚫'} status.`
+        )
+    }
+
+    // #endregion
+
+    // #region useEffect
+
+    /**
+     * Detect window opening.
+     */
+    useEffect(() => {
+        // Vérifier que window.electronAPI est disponible
+        if (!window.electronAPI) {
+            frontLog.error('window.electronAPI is not available!')
+            return
+        }
+        /**
+         * Handler (main->front), get LinuxUpdate from main
+         */
+        window.electronAPI.handleNewLinuxVersion((linuxUpdate: LinuxUpdate) => {
+            frontLog.debug(`linuxUpdate`, linuxUpdate)
+            const resp = window.confirm(
+                t(
+                    `A new version of the app is avalaible ({{version}}), do you want to download it?`,
+                    { version: linuxUpdate.latestReleaseVersion }
+                )
+            )
+            if (resp === true) {
+                window.open(
+                    linuxUpdate.latestReleaseURL,
+                    `_blank`,
+                    'noopener,noreferrer'
+                )
+            }
+        })
+        /**
+         * Handler (main->front), get data from main
+         */
+        window.electronAPI.sendDatasToFront((data: any) => {
+            if (typeof data === 'string') {
+                const _data = JSON.parse(data)
+                frontLog.debug(`sendDatasToFront is a string`, _data)
+                setDatasFromHost((oldObject) => ({
+                    ...oldObject,
+                    ..._data,
+                }))
+            } else {
+                if (data.type && (data.result || data.error)) {
+                    setDatasFromHost((oldObject) => {
+                        const o: any = {
+                            ...oldObject,
+                        }
+                        const type = (data as ConfigData).type
+                        o[type] = data
+                        return o
+                    })
+                } else {
+                    frontLog.debug(
+                        `sendDatasToFront is object`,
+                        JSON.stringify(data, null, 2)
+                    )
+                    setDatasFromHost((oldObject) => ({
+                        ...oldObject,
+                        ...data,
+                    }))
+                }
+            }
+        })
+
+        /**
+         * Handler (main->front), Change language from Menu.
+         */
+        window.electronAPI.changeLanguageInFront((lng: string) => {
+            try {
+                i18nResources.changeLanguage(lng, (err, t) => {
+                    if (err)
+                        return frontLog.error(
+                            'something went wrong loading',
+                            err
+                        )
+                    t('key') // -> same as i18next.t
+                })
+            } catch (error) {
+                frontLog.error(error)
+            }
+        })
+
+        /**
+         * Read language set in Store.
+         */
+        const getLanguage = async () => {
+            try {
+                const gettedLng = await window.store.get(`language`, `fr`)
+                if (gettedLng) {
+                    i18nResources.changeLanguage(gettedLng)
+                }
+            } catch (error) {
+                frontLog.debug(error)
+            }
+        }
+        /**
+         * On Window opening, Launch read language in Store.
+         */
+        getLanguage()
+        /**
+         * On Window opening, Listen to initialization messages.
+         * L'initialisation est maintenant lancée automatiquement par le main process.
+         */
+        if (!window.initialisationAPI) {
+            frontLog.error('window.initialisationAPI is not available!')
+            return
+        }
+        window.initialisationAPI.sendInitializationMessages(
+            async (message: InitalizationMessage) => {
+                frontLog.debug(`sendInitializationMessages`, message)
+
                 if (message.type === 'data') {
-                    // Pour les messages de type data, on peut traiter les données
-                    // mais on garde l'affichage actuel si le titre/message sont vides
-                    console.log('Data message:', message.data)
-                    // Ne pas mettre à jour le titre/message si ils sont vides pour les messages data
-                    if (message.title || message.message) {
-                        if (message.title)
-                            setInformationPopinTitle(message.title)
-                        if (message.message)
+                    switch (message.data?.type) {
+                        case InitalizationData.WORKDIR:
+                            setWorkDir(message.data.result as string)
+                            break
+                        case InitalizationData.HOMEDIR:
+                            setHomeDir(message.data.result as string)
+                            break
+                        case InitalizationData.APP_READY:
+                            setAppReady(message.data.result as boolean)
+                            break
+                        case InitalizationData.PUPPETEER_BROWSER_INSTALLED:
+                            setIsPuppeteerBrowserInstalled(
+                                message.data.result as boolean
+                            )
+                            setPuppeteerBrowserInstalledVersion(
+                                message.data.result as string
+                            )
+                            break
+                        case InitalizationData.APP_CAN_NOT_BE_LAUNCHED:
+                            setInformationPopinTitle(`${message.title}`)
                             setInformationPopinMessage(message.message)
+                            break
                     }
                 } else {
-                    // Pour les messages normaux, toujours mettre à jour
-                    if (message.title) {
-                        setInformationPopinTitle(message.title)
-                    }
-                    if (message.message) {
-                        setInformationPopinMessage(message.message)
-                    }
+                    setInformationPopinTitle(message.title)
+                    setInformationPopinMessage(message.message)
                     setInformationPopinErrorLink(
-                        message.errorLink || { label: '', url: '' }
+                        message?.errorLink || { label: '', url: '' }
                     )
                 }
 
-                // Mettre à jour la progression
-                if (message.step && message.steps) {
-                    setInitializationSteps(message.steps)
-                    const progress = (message.step / message.steps) * 100
-                    setInitializationProgress(progress)
-                }
-
-                // Gérer les différents types de modal
                 if (message.modalType === 'started') {
                     setDisplayInformationPopin(true)
-                    setShowInformationSpinner(true)
-                    setInformationPopinIsAlert(false)
                 } else if (message.modalType === 'completed') {
-                    // Attendre 2 secondes avant de fermer
-                    await new Promise((resolve) => setTimeout(resolve, 2000))
+                    await _sleep(2000)
                     setDisplayInformationPopin(false)
                 } else if (message.modalType === 'error') {
                     setDisplayInformationPopin(true)
@@ -92,54 +513,169 @@ function App() {
                 }
             }
         )
-
-        return () => {
-            unsubscribe()
-        }
     }, [])
+
+    /**
+     * Detect workDir change.
+     */
+    useEffect(() => {
+        const isJsonConfigFileExist = async () => {
+            const lastWorkDir = await window.store.get(`lastWorkDir`, workDir)
+            const result =
+                await window.electronAPI.handleIsJsonConfigFileExist(
+                    lastWorkDir
+                )
+            frontLog.log(`isJsonConfigFileExist`, result)
+
+            result && runJsonReadAndReload()
+        }
+        isJsonConfigFileExist()
+    }, [workDir, runJsonReadAndReload])
+
+    // #endregion
+
+    // #region JSX
+
+    // Debug: Log before render
+    // frontLog.debug('TheApp rendering...', { appReady, workDir, homeDir })
 
     return (
         <>
-            <div className="min-h-screen bg-background p-8">
-                <div className="mx-auto max-w-4xl space-y-8">
-                    <div className="relative flex justify-end">
-                        <DarkModeSwitcher
-                            title={t('Dark mode switch')}
-                            className="absolute left-2 top-2 z-20 flex gap-2"
-                        />
-                        <LanguageSwitcher />
-                    </div>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t('app.title')}</CardTitle>
-                            <CardDescription>
-                                {t('app.description')}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                <p className="text-muted-foreground">
-                                    {t('app.welcome')}
-                                </p>
-                                <div className="flex items-center gap-4">
-                                    <Button
-                                        onClick={() =>
-                                            setCount((count) => count + 1)
-                                        }
-                                    >
-                                        {t('app.count', { count })}
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setCount(0)}
-                                    >
-                                        {t('app.reset')}
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+            <div className="container relative">
+                <DarkModeSwitcher
+                    title={t('Dark mode switch')}
+                    className="absolute left-2 top-2 z-20 flex gap-2"
+                />
+                <div className="absolute right-2 top-2 z-20">
+                    <LanguageSwitcher />
                 </div>
+                <main className="flex h-screen flex-col justify-between gap-4 p-4">
+                    <div className="flex flex-col items-center gap-4">
+                        <Header />
+                        <InitErrorAlerts
+                            datasFromHost={datasFromHost}
+                            launchInitialization={launchInitialization}
+                        />
+                        {!appReady && <MySkeleton />}
+                        {appReady && (
+                            <>
+                                <Card className="w-full border-primary">
+                                    <CardHeader>
+                                        <CardTitle>
+                                            {t('1. Select ouput folder')}
+                                        </CardTitle>
+                                        <CardDescription>
+                                            {t(
+                                                'Specify where to execute the measures.'
+                                            )}
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="flex w-full items-center gap-2">
+                                            <Input
+                                                id="filePath"
+                                                value={workDir}
+                                                type="text"
+                                                readOnly
+                                            />
+                                            <Button
+                                                type="button"
+                                                id="btn-file"
+                                                disabled={!appReady}
+                                                onClick={selectWorkingFolder}
+                                            >
+                                                {t('Browse')}
+                                            </Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <TypographyP className={`w-full`}>
+                                    {t(
+                                        'Choose the type of measure you want to do.'
+                                    )}
+                                </TypographyP>
+                                <Tabs
+                                    defaultValue="simple-mesure"
+                                    className="w-full"
+                                >
+                                    <TabsList className="mb-4 grid w-full grid-cols-2">
+                                        <TabsTrigger value="simple-mesure">
+                                            {t('Url(s) Measure (Simple mode)')}
+                                        </TabsTrigger>
+                                        <TabsTrigger value="json-mesure">
+                                            {t('Courses Measure (Full mode)')}
+                                        </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="simple-mesure">
+                                        <SimplePanMesure
+                                            appReady={appReady}
+                                            language={i18nResources.language}
+                                            mesure={runSimpleMesures}
+                                            urlsList={urlsList}
+                                            setUrlsList={setUrlsList}
+                                            className="border-primary"
+                                            envVars={envVars}
+                                            setEnvVars={setEnvVars}
+                                            localAdvConfig={localAdvConfig}
+                                            setLocalAdvConfig={
+                                                setLocalAdvConfig
+                                            }
+                                        />
+                                    </TabsContent>
+                                    <TabsContent value="json-mesure">
+                                        <JsonPanMesure
+                                            appReady={appReady}
+                                            isJsonFromDisk={isJsonFromDisk}
+                                            language={i18nResources.language}
+                                            jsonDatas={jsonDatas}
+                                            setJsonDatas={setJsonDatas}
+                                            mesure={(envVars) =>
+                                                runJsonSaveAndCollect(
+                                                    true,
+                                                    envVars
+                                                )
+                                            }
+                                            reload={runJsonReadAndReload}
+                                            save={runJsonSaveAndCollect}
+                                            notify={handlerJsonNotify}
+                                            className="border-primary"
+                                            envVars={envVars}
+                                            setEnvVars={setEnvVars}
+                                        />
+                                    </TabsContent>
+                                </Tabs>
+                            </>
+                        )}
+                        {/* display here the echoReadable line */}
+                        <ConsoleApp
+                            id="echo"
+                            datasFromHost={datasFromHost}
+                            appReady={appReady}
+                            isFirstStart={isFirstStart}
+                            isPuppeteerBrowserInstalled={
+                                isPuppeteerBrowserInstalled
+                            }
+                            workDir={workDir}
+                            homeDir={homeDir}
+                            puppeteerBrowserInstalledVersion={
+                                puppeteerBrowserInstalledVersion
+                            }
+                        />
+                    </div>
+                    <Footer
+                        appVersion={packageJson?.version}
+                        repoUrl={packageJson?.homepage}
+                        coursesVersion={
+                            (
+                                packageJson?.dependencies as Record<
+                                    string,
+                                    string
+                                >
+                            )?.['lighthouse-plugin-ecoindex-courses'] ||
+                            'undefined'
+                        }
+                    />
+                </main>
             </div>
             <InformationPopin
                 id="informationPopin"
@@ -147,39 +683,70 @@ function App() {
                 title={informationPopinTitle}
                 showSpinner={showInformationSpinner}
                 isAlert={informationPopinIsAlert}
-                errorLink={
-                    informationPopinErrorLink.label
-                        ? informationPopinErrorLink
-                        : undefined
-                }
-                showProgress={initializationSteps > 0}
-                progress={initializationProgress}
+                errorLink={informationPopinErrorLink}
             >
-                <div
+                <span
                     className={cn(
-                        'whitespace-pre-line break-words text-sm',
+                        'text-sm',
                         !informationPopinIsAlert
                             ? 'italic'
                             : 'font-bold !text-red-500'
                     )}
                 >
                     {informationPopinMessage}
-                </div>
+                </span>
                 {informationPopinErrorLink &&
                     informationPopinErrorLink.label !== '' && (
                         <a
                             className="underline"
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noreferrer"
                             href={informationPopinErrorLink.url}
                         >
                             {informationPopinErrorLink.label}
                         </a>
                     )}
             </InformationPopin>
-            <SplashScreen id="splash-screen" onClose={() => {}} />
+            {displayPopin && (
+                <PopinLoading
+                    id="loadingPopin"
+                    progress={progress}
+                    showProgress={!appReady}
+                    className="flex !flex-col items-center"
+                    footer={
+                        displayReloadButton && (
+                            <Button
+                                id="bt-reload"
+                                variant="destructive"
+                                size="sm"
+                                onClick={forceRefresh}
+                                className="max-w-fit"
+                            >
+                                {t('Reload if too long')}
+                            </Button>
+                        )
+                    }
+                >
+                    <div className="flex flex-nowrap items-center">
+                        <ReloadIcon className="mr-2 size-4 animate-spin" />
+                        <p id="counter">{popinText}</p>
+                    </div>
+                </PopinLoading>
+            )}
+            <SplashScreen
+                id="splash-screen"
+                onClose={() => blockScrolling(false)}
+            />
         </>
     )
 }
 
-export default App
+export default function App() {
+    return (
+        <Router>
+            <Routes>
+                <Route path="/" element={<TheApp />} />
+            </Routes>
+        </Router>
+    )
+}
