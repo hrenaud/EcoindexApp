@@ -70,25 +70,6 @@ async function _prepareCollect(): Promise<{
     }
 }
 
-class CollectDatas {
-    collectType: `simple` | `complexe`
-    outputPath: string
-    output?: string[]
-    listAllAudits: false
-    generationDate: string
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-class SimpleCollectDatas extends CollectDatas {
-    declare collectType: 'simple'
-    url: string[]
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-class ComplexeCollectDatas extends CollectDatas {
-    declare collectType: 'complexe'
-    jsonFile: string
-}
-
 class CollectDatas_V2 {
     collectType: `simple` | `complexe`
     command: CliFlags
