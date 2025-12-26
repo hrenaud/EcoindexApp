@@ -4,14 +4,9 @@ import { ConfigData } from '../../../class/ConfigData'
 import { _sendMessageToFrontConsole } from '../../utils/SendMessageToFrontConsole'
 import { _sendMessageToFrontLog } from '../../utils/SendMessageToFrontLog'
 import { channels } from '../../../shared/constants'
-// import { installMandatoryBrowser } from 'lighthouse-plugin-ecoindex-core/install-browser'
 import { getMainLog } from '../../main'
 import { getMainWindow } from '../../memory'
 import path from 'path'
-
-// import { installMandatoryBrowser } from 'lighthouse-plugin-ecoindex-core/install-browser'
-
-// import { installMandatoryBrowser } from 'lighthouse-plugin-ecoindex-core/dist/install-browser.cjs'
 
 /**
  * Initialization, Install Puppeteer browsers on host.
@@ -71,12 +66,6 @@ export const initPuppeteerBrowserInstallation = async (
                     `process.resourcesPath not available, using fallback: ${pathToScript}`
                 )
             }
-            // pathToScript = path.join(__dirname, '..', '..', 'scripts', 'browser_install.mjs')
-            // pathToScript = process.env['WEBPACK_SERVE'] === 'true'
-            //         ? path.join(__dirname, '..', 'scripts', 'browser_isInstalled.mjs')
-            //         : path.join(
-            //             'app.asar', 'scripts', 'browser_isInstalled.mjs'
-            //           )
             const child = utilityProcess.fork(pathToScript, ['test'], {
                 stdio: ['ignore', 'pipe', 'pipe'],
             })

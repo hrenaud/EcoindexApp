@@ -323,18 +323,6 @@ function TheApp() {
 
     // #region initialisationAPI
     /**
-     * Init and Reset Reload Button.
-     * @param clear Reset counter
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _initReloadButton = async (clear = false) => {
-        const waitSeconds = 90
-        setDisplayReloadButton(false)
-        await _sleep(waitSeconds * 1000, clear)
-        setDisplayReloadButton(true)
-    }
-
-    /**
      * Launch Initialization.
      * @param forceInitialisation
      */

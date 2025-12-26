@@ -546,19 +546,9 @@ export const handleJsonSaveAndCollect = async (
                 jsonDatas.output as ('statement' | 'json' | 'html')[],
                 jsonFilePath
             )
-            // const {
-            //     command,
-            //     nodeDir,
-            //     workDir: _workDir,
-            // } = await _prepareCollect()
             _debugLogs('Json measure start...')
             _debugLogs(`JSON datas ${JSON.stringify(jsonDatas, null, 2)}`)
-            // command.push('--json-file')
-            // command.push(path.join(_workDir, utils.JSON_FILE_NAME))
-            // command.push('--output-path')
-            // command.push(_workDir)
             try {
-                // await _runCollect(command, nodeDir, event)
                 await _runDirectCollect(collectDatas, event, false, envVars)
             } catch (error) {
                 mainLog.error('Simple collect error', error)
