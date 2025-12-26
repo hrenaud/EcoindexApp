@@ -52,7 +52,6 @@ export interface IStoreAPI {
 }
 
 export interface ILogAPI {
-    // TODO
     // Front → Main
     sendLogToMain: (callback) => string
     // Main → Front

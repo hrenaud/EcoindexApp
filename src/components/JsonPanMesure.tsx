@@ -219,7 +219,7 @@ export const JsonPanMesure: FC<ILayout> = ({
                 )
             }
         } else {
-            // todo
+            // Gestion générique pour les autres types de champs
             frontLog.debug(`handlerOnChange`, id, name, e, course)
 
             updateGeneric('checkbox', id, name ? name : id, e, course)
