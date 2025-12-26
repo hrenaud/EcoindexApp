@@ -35,6 +35,7 @@
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
         "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
         "format": "prettier --write .",
+        "typecheck": "tsc --noEmit",
         "prebuild": "npm run asar:pack:lib",
         "build": "npm run lint && electron-forge package",
         "make:dmg": "npm run make && node scripts/create-dmg.js",
