@@ -265,10 +265,8 @@ async function createWindow() {
                 mainLog.info('Initialization completed with result:', result)
             } catch (error) {
                 mainLog.error('Error during automatic initialization:', error)
-                console.error('Error during automatic initialization:', error)
                 if (error instanceof Error) {
                     mainLog.error('Error stack:', error.stack)
-                    console.error('Error stack:', error.stack)
                 }
             }
         }, 1000)
@@ -278,7 +276,8 @@ async function createWindow() {
     win.webContents.on(
         'did-fail-load',
         (_event, errorCode, errorDescription) => {
-            console.error('Failed to load:', errorCode, errorDescription)
+            const mainLog = getMainLog()
+            mainLog.error('Failed to load:', errorCode, errorDescription)
         }
     )
 }
@@ -290,7 +289,8 @@ app.whenReady().then(async () => {
     // Charger la langue depuis le store et l'appliquer AVANT l'initialisation
     const savedLanguage = (store.get('language') as string) || 'en'
     await i18n.changeLanguage(savedLanguage)
-    console.log('Language loaded from store and applied:', savedLanguage)
+    const mainLog = getMainLog()
+    mainLog.debug('Language loaded from store and applied:', savedLanguage)
 
     // Créer la fenêtre d'abord pour avoir mainWindow disponible
     await createWindow()

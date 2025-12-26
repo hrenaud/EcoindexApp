@@ -287,16 +287,15 @@ async function _runDirectCollect(
                 try {
                     if (isSimple) {
                         const url = path.join(workDir, `generic.report.html`)
-                        console.log('url', url)
+                        mainLog.debug('url', url)
                         shell.showItemInFolder(url)
                     }
                 } catch (error) {
-                    console.error('Error opening folder:', error)
+                    mainLog.error('Error opening folder:', error)
                     _sendMessageToFrontLog(
                         'Error',
                         `Error opening folder: ${error}`
                     )
-                    mainLog.log(`Error opening folder: ${error}`)
                 }
 
                 if (!hasExited) {

@@ -7,6 +7,9 @@ import { Input } from './ui/input'
 import { TypographyH2 } from './ui/typography/TypographyH2'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
+import log from 'electron-log/renderer'
+
+const frontLog = log.scope('front/SimpleUrlsList')
 
 export interface ILayout {
     language: string
@@ -32,7 +35,7 @@ export const SimpleUrlsList: FC<ILayout> = ({
         try {
             setUrlsList([...urlsList, { value: '' }])
         } catch (error) {
-            console.error(t('Error adding a new input field'), error)
+            frontLog.error(t('Error adding a new input field'), error)
         }
     }
 
@@ -43,7 +46,7 @@ export const SimpleUrlsList: FC<ILayout> = ({
         try {
             setUrlsList(newInputFields)
         } catch (error) {
-            console.error(t('Error removing an input field'), error)
+            frontLog.error(t('Error removing an input field'), error)
         }
     }
 
@@ -57,7 +60,7 @@ export const SimpleUrlsList: FC<ILayout> = ({
         try {
             setUrlsList(values)
         } catch (error) {
-            console.error(
+            frontLog.error(
                 t('Error updating the value of an input field'),
                 error
             )

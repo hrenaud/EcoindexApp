@@ -7,6 +7,9 @@ import { TypographyH2 } from './ui/typography/TypographyH2'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
 import type { IKeyValue } from '@/interface'
+import log from 'electron-log/renderer'
+
+const frontLog = log.scope('front/KeyValue')
 
 export interface ILayout {
     visible: boolean
@@ -40,7 +43,7 @@ export const KeyValue: FC<ILayout> = ({
                 ...newDataElement,
             })
         } catch (error) {
-            console.error(t('Error adding a new input field'), error)
+            frontLog.error(t('Error adding a new input field'), error)
         }
     }
 
@@ -51,7 +54,7 @@ export const KeyValue: FC<ILayout> = ({
         try {
             setDatas(newInputFields)
         } catch (error) {
-            console.error(t('Error removing an input field'), error)
+            frontLog.error(t('Error removing an input field'), error)
         }
     }
 
@@ -64,7 +67,7 @@ export const KeyValue: FC<ILayout> = ({
         try {
             setDatas(values)
         } catch (error) {
-            console.error(
+            frontLog.error(
                 t('Error updating the value of an input field'),
                 error
             )
@@ -100,7 +103,7 @@ export const KeyValue: FC<ILayout> = ({
         try {
             setDatas(tempValues)
         } catch (error) {
-            console.error(
+            frontLog.error(
                 t('Error updating the value of an input field'),
                 error
             )

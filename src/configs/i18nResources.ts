@@ -1,5 +1,8 @@
 import i18n from 'i18next'
 import resourcesToBackend from 'i18next-resources-to-backend'
+import log from 'electron-log/renderer'
+
+const frontLog = log.scope('front/i18nResources')
 
 try {
     i18n.use(
@@ -8,7 +11,7 @@ try {
                 import(`../locales/${language}/${namespace}.json`)
         )
     )
-    i18n.on('failedLoading', (_lng, _ns, msg) => console.error(msg))
+    i18n.on('failedLoading', (_lng, _ns, msg) => frontLog.error(msg))
 
     // Initialiser avec la langue par défaut
     // La langue sauvegardée sera chargée dans le composant LanguageSwitcher
@@ -32,7 +35,7 @@ try {
         })
     }
 } catch (error) {
-    console.error('i18n initialization error:', error)
+    frontLog.error('i18n initialization error:', error)
 }
 
 export default i18n

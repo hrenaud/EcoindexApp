@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
+import log from 'electron-log/renderer'
+
+const frontLog = log.scope('front/LanguageSwitcher')
 
 export function LanguageSwitcher() {
     const { i18n, t } = useTranslation()
@@ -18,7 +21,7 @@ export function LanguageSwitcher() {
                         setCurrentLang(savedLang)
                     }
                 } catch (error) {
-                    console.error('Error loading saved language:', error)
+                    frontLog.error('Error loading saved language:', error)
                 }
             }
         }

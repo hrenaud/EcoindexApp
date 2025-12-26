@@ -57,7 +57,11 @@ const initializeI18n = async (): Promise<void> => {
             // Charger explicitement le namespace translation
             await i18n.loadNamespaces('translation')
         } catch (error) {
-            console.error('i18n initialization error:', error)
+            // getMainLog peut ne pas être disponible au chargement du module
+            // donc on utilise un import dynamique
+            const { getMainLog } = await import('../main/main')
+            const mainLog = getMainLog()
+            mainLog.error('i18n initialization error:', error)
             throw error
         }
     })()
@@ -67,8 +71,12 @@ const initializeI18n = async (): Promise<void> => {
 
 // Initialiser automatiquement au chargement du module
 // Ne pas bloquer le démarrage si l'initialisation échoue
-initializeI18n().catch((error) => {
-    console.error('Failed to initialize i18n (non-blocking):', error)
+initializeI18n().catch(async (error) => {
+    // getMainLog peut ne pas être disponible au chargement du module
+    // donc on utilise un import dynamique
+    const { getMainLog } = await import('../main/main')
+    const mainLog = getMainLog()
+    mainLog.error('Failed to initialize i18n (non-blocking):', error)
     // Ne pas throw pour ne pas bloquer le chargement du module
 })
 
