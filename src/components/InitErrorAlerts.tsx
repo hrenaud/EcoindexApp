@@ -21,12 +21,10 @@ export const InitErrorAlerts = ({
     const [isNodeVersionInError, setIsNodeVersionInError] = useState(false)
     const [isWriteAccessInError, setIsWriteAccessInError] = useState(false)
     const [isGenericInError, setIsGenericInError] = useState(false)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_isWriteAccessCantFix, setIsWriteAccessCantFix] = useState(false)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_isBrowserInError, setIsBrowserInError] = useState(false)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_isNpmDirInError, setIsNpmDirInError] = useState(false)
+    // Ces setters sont utilisés dans les handlers mais les valeurs ne sont pas affichées
+    const [, setIsWriteAccessCantFix] = useState(false)
+    const [, setIsBrowserInError] = useState(false)
+    const [, setIsNpmDirInError] = useState(false)
 
     const { t } = useTranslation()
 

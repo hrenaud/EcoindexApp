@@ -44,8 +44,7 @@ export const AdvConfiguration: FC<ILayout> = ({
      */
     useEffect(() => {
         setEnableStatement(!configurationDatas['output'].includes('json'))
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [configurationDatas])
 
     /**
      * Synchronise `json` et `statement` dans les `output`.

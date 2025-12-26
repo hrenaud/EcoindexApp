@@ -11,7 +11,6 @@ import type {
     IKeyValue,
 } from '@/interface'
 import { InitalizationMessage, InputField } from '@/types'
-import { Route, MemoryRouter as Router, Routes } from 'react-router-dom'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { store as storeConstants, utils } from '@/shared/constants'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -725,11 +724,5 @@ function TheApp() {
 }
 
 export default function App() {
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<TheApp />} />
-            </Routes>
-        </Router>
-    )
+    return <TheApp />
 }
