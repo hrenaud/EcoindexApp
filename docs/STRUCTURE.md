@@ -73,7 +73,6 @@ EcoindexApp-2025/
 │   ├── types.d.ts                # Types TypeScript globaux
 │   ├── interface.d.ts            # Interfaces TypeScript
 │   ├── declarations.d.ts         # Déclarations globales
-│   └── exportHelpers.ts          # Helpers d'export (legacy)
 ├── docs/                         # Documentation
 │   ├── README.md                 # Index de la documentation
 │   ├── ARCHITECTURE.md           # Architecture technique
