@@ -5,7 +5,7 @@ import type {
     ISimpleUrlInput,
 } from '../../interface'
 import { app, IpcMainEvent, shell, utilityProcess } from 'electron'
-import { getNodeDir, getNpmDir, getWorkDir, isDev } from '../memory'
+import { getWorkDir, isDev } from '../memory'
 
 import type { CliFlags } from 'lighthouse-plugin-ecoindex-courses/dist/types'
 import { _debugLogs } from '../utils/MultiDebugLogs'
@@ -16,7 +16,6 @@ import { fileURLToPath } from 'node:url'
 import fs from 'fs'
 import { getMainLog } from '../main'
 import i18n from '../../configs/i18next.config'
-import os from 'node:os'
 import path from 'node:path'
 import { showNotification } from '../utils/ShowNotification'
 import { utils } from '../../shared/constants'
@@ -25,48 +24,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 /**
  * Utils, prepare Json Collect.
- * @returns Promise<{
-  command: string[]
-  nodeDir: string
-  workDir: string
-}>
+ * Vérifie que le répertoire de travail existe.
  */
-async function _prepareCollect(): Promise<{
-    command: string[]
-    nodeDir: string
-    workDir: string
-}> {
+async function _prepareCollect(): Promise<void> {
     const mainLog = getMainLog().scope('main/prepareCollect')
-    // create stream to log the output. TODO: use specified path
     try {
         const _workDir = getWorkDir() as string
         if (!_workDir || _workDir === '') {
             throw new Error('Work dir not found')
         }
-
-        let nodeDir = getNodeDir()
-        _debugLogs(`Node dir: ${nodeDir}`)
-
-        const npmDir = getNpmDir()
-        _debugLogs(`Npm dir: ${npmDir}`)
-
-        const command = [
-            path.join(
-                __dirname,
-                `../..`,
-                `node_modules`,
-                `lighthouse-plugin-ecoindex`,
-                `cli`,
-                `run.js`
-            ),
-            'collect',
-        ]
-        if (os.platform() === `win32`) {
-            nodeDir = nodeDir.replace(/\\/gm, path.sep)
-        }
-        return { command, nodeDir, workDir: _workDir.replace(/ /g, '\\ ') }
     } catch (error) {
         mainLog.error('Error in _prepareCollect', error)
+        throw error
     }
 }
 
@@ -386,16 +355,10 @@ export const handleSimpleCollect = async (
         urlsList
     )
 
-    const { command, workDir: _workDir } = await _prepareCollect()
+    await _prepareCollect()
     _debugLogs('Simple measure start, process intialization...')
     _debugLogs(`Urls list: ${JSON.stringify(urlsList)}`)
     try {
-        urlsList.forEach((url) => {
-            if (url.value) {
-                command.push('-u')
-                command.push(url.value)
-            }
-        })
         collectDatas.command['output'] = localAdvConfig.output as (
             | 'statement'
             | 'json'
@@ -420,22 +383,16 @@ export const handleSimpleCollect = async (
             collectDatas.command['puppeteer-script'] =
                 localAdvConfig['puppeteer-script']
         }
-        command.push('--output-path')
-        command.push(`${_workDir}`)
-
-        // Fake mesure and path. TODO: use specified path and urls
+        collectDatas.command['exportPath'] = path.join(
+            (await getWorkDir()) as string,
+            collectDatas.command.generationDate
+        )
         showNotification({
             subtitle: i18n.t(' 🚀Simple collect'),
             body: i18n.t('Collect started...'),
         })
         try {
             if (isDev()) {
-                const [script, ...args] = command
-                mainLog.debug(
-                    `before (simple) runCollect(script, args)`,
-                    script,
-                    args
-                )
                 mainLog.debug(
                     `before (simple) runCollect(collectDatas)`,
                     collectDatas
@@ -449,13 +406,11 @@ export const handleSimpleCollect = async (
             })
             throw new Error('Simple collect error')
         }
-        // process.stdout.write(data)
-        // const _workDir = collectDatas.outputPath
         showNotification({
             subtitle: i18n.t('🎉 Simple collect'),
             body: i18n.t(
                 `Collect done, you can consult reports in\n{{_workDir}}`,
-                { _workDir }
+                { _workDir: collectDatas.command.exportPath }
             ),
         })
         if (isDev()) mainLog.debug('Simple collect done 🚀')
