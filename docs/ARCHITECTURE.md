@@ -382,7 +382,7 @@ Le menu Electron est construit dynamiquement avec les traductions i18next et se 
     - `CHANGE_LANGUAGE_TO_FRONT` : pour mettre à jour i18n dans le renderer via `App.tsx`
 6. Le renderer met à jour son interface via `react-i18next` et `i18nResources.changeLanguage()`
 
-**Synchronisation** : Pour éviter les doubles changements (clignotement), le composant `LanguageSwitcher` délègue toujours le changement de langue au main process via IPC, plutôt que d'appeler directement `i18n.changeLanguage()` dans le renderer.
+**Synchronisation** : Le composant `LanguageSwitcher` est simplifié et utilise directement `i18n.language` comme source de vérité unique. Il ne maintient plus d'état local et délègue toujours le changement de langue au main process via IPC. Cela évite les conflits entre plusieurs sources de vérité et élimine complètement le clignotement. Le composant se re-rend automatiquement grâce à `useTranslation()` quand `i18n.language` change.
 
 ### Scripts utilitaires
 
