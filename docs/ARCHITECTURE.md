@@ -374,11 +374,15 @@ Le menu Electron est construit dynamiquement avec les traductions i18next et se 
 **Flux de changement de langue** :
 
 1. L'utilisateur sélectionne une langue (menu Electron ou composant UI)
-2. `i18n.changeLanguage()` est appelé
+2. `i18n.changeLanguage()` est appelé dans le main process
 3. L'événement `languageChanged` est émis par i18next
 4. `menuFactory.ts` détecte l'événement et reconstruit le menu
-5. Toutes les fenêtres sont notifiées via IPC `language-changed`
-6. Le renderer met à jour son interface via `react-i18next`
+5. Toutes les fenêtres sont notifiées via deux événements IPC :
+    - `language-changed` : pour synchroniser le composant `LanguageSwitcher`
+    - `CHANGE_LANGUAGE_TO_FRONT` : pour mettre à jour i18n dans le renderer via `App.tsx`
+6. Le renderer met à jour son interface via `react-i18next` et `i18nResources.changeLanguage()`
+
+**Synchronisation** : Pour éviter les doubles changements (clignotement), le composant `LanguageSwitcher` délègue toujours le changement de langue au main process via IPC, plutôt que d'appeler directement `i18n.changeLanguage()` dans le renderer.
 
 ### Scripts utilitaires
 

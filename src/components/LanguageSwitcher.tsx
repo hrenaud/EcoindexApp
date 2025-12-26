@@ -27,20 +27,36 @@ export function LanguageSwitcher() {
         }
         loadSavedLanguage()
 
-        // Écouter les changements de langue depuis le menu Electron
+        // Écouter les changements de langue depuis le menu Electron ou le main process
+        // App.tsx gère déjà le changement via changeLanguageInFront, on synchronise juste currentLang
         if (window.electronAPI) {
             const unsubscribe = window.electronAPI.onLanguageChanged((lang) => {
-                i18n.changeLanguage(lang)
+                // Mettre à jour seulement l'état local, le changement de langue est déjà fait par App.tsx
                 setCurrentLang(lang)
             })
             return unsubscribe
         }
     }, [i18n])
 
+    // Synchroniser currentLang avec i18n.language quand il change
+    useEffect(() => {
+        const handleLanguageChanged = (lng: string) => {
+            if (lng !== currentLang) {
+                setCurrentLang(lng)
+            }
+        }
+        i18n.on('languageChanged', handleLanguageChanged)
+        return () => {
+            i18n.off('languageChanged', handleLanguageChanged)
+        }
+    }, [i18n, currentLang])
+
     const handleLanguageChange = async (lang: string) => {
-        await i18n.changeLanguage(lang)
+        // Mettre à jour l'état local immédiatement pour l'UI
         setCurrentLang(lang)
         // Notifier le processus principal pour mettre à jour le menu
+        // Le main process changera la langue et enverra l'événement 'change-language-to-front'
+        // qui sera capturé par App.tsx pour changer la langue
         if (window.electronAPI) {
             await window.electronAPI.changeLanguage(lang)
         }

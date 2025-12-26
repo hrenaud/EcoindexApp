@@ -4,6 +4,7 @@ import Store from 'electron-store'
 import log from 'electron-log'
 import i18n from '../../configs/i18next.config'
 import pkg from '../../../package.json'
+import { channels } from '../../shared/constants'
 
 const mainLog = log.scope('main/otherMenu')
 const store = new Store()
@@ -33,10 +34,14 @@ export const otherTemplate = (
                 click: () => {
                     store.set('language', languageCode.code)
                     _i18n.changeLanguage(languageCode.code).then(() => {
-                        // Notifier toutes les fenêtres
+                        // Notifier toutes les fenêtres avec les deux événements nécessaires
                         BrowserWindow.getAllWindows().forEach((window) => {
                             window.webContents.send(
                                 'language-changed',
+                                languageCode.code
+                            )
+                            window.webContents.send(
+                                channels.CHANGE_LANGUAGE_TO_FRONT,
                                 languageCode.code
                             )
                         })

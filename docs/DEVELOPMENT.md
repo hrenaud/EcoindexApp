@@ -264,6 +264,32 @@ i18n.on('languageChanged', () => {
 
 **Note** : Les handlers de clic dans `darwinMenu.ts` et `otherMenu.ts` utilisent `.then()` après `changeLanguage()` pour s'assurer que l'événement est bien émis avant de notifier les fenêtres.
 
+**Synchronisation entre menu et interface** :
+
+Pour garantir que toute l'interface (menu, bouton de langue, et contenu) se met à jour correctement lors d'un changement de langue, deux événements IPC sont envoyés :
+
+1. **`language-changed`** : Notifie le composant `LanguageSwitcher` pour synchroniser l'état local
+2. **`CHANGE_LANGUAGE_TO_FRONT`** : Notifie `App.tsx` pour mettre à jour i18n dans le renderer via `i18nResources.changeLanguage()`
+
+**Flux complet** :
+
+- **Depuis le menu Electron** :
+    1. Clic sur une langue dans le menu
+    2. `i18n.changeLanguage()` est appelé dans le main process
+    3. Les deux événements IPC sont envoyés à toutes les fenêtres
+    4. `App.tsx` reçoit `CHANGE_LANGUAGE_TO_FRONT` et met à jour i18n
+    5. `LanguageSwitcher` reçoit `language-changed` et synchronise son état
+
+- **Depuis le bouton `LanguageSwitcher`** :
+    1. Clic sur un bouton de langue
+    2. L'état local `currentLang` est mis à jour immédiatement (pour l'UI)
+    3. `window.electronAPI.changeLanguage()` est appelé (IPC vers main)
+    4. Le main process appelle `changeLanguage()` qui envoie les deux événements
+    5. `App.tsx` reçoit `CHANGE_LANGUAGE_TO_FRONT` et met à jour i18n
+    6. `LanguageSwitcher` écoute aussi `i18n.on('languageChanged')` pour synchroniser
+
+**Important** : Le composant `LanguageSwitcher` ne change plus directement la langue via `i18n.changeLanguage()` pour éviter les doubles changements (clignotement). Il délègue toujours au main process via IPC.
+
 ### Popin d'initialisation
 
 Le composant `InformationPopin` affiche les messages d'initialisation dans le renderer. Pour l'utiliser :
