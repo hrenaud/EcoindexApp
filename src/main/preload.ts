@@ -90,6 +90,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.invoke(channels.SELECT_PUPPETEER_FILE),
     handleIsJsonConfigFileExist: (workDir: string) =>
         ipcRenderer.invoke(channels.IS_JSON_CONFIG_FILE_EXIST, workDir),
+    showConfirmDialog: (options: {
+        title: string
+        message: string
+        buttons: string[]
+    }) => ipcRenderer.invoke(channels.SHOW_CONFIRM_DIALOG, options),
     // Main → Front: Écouter les données depuis le main
     sendDatasToFront: (callback: (data: any) => void) => {
         ipcRenderer.on(channels.HOST_INFORMATIONS_BACK, (_event, data) =>

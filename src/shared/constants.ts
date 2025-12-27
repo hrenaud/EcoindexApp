@@ -71,6 +71,8 @@ const constants: IConstants = {
         STORE_DELETE: 'store-delete',
         // Channel pour les messages du main process
         MAIN_PROCESS_MESSAGE: 'main-process-message',
+        // Channel pour les boîtes de dialogue
+        SHOW_CONFIRM_DIALOG: 'show-confirm-dialog',
     },
     scripts: {
         GET_NODE: 'get-node',

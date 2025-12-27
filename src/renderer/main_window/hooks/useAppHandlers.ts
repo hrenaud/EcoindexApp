@@ -64,6 +64,27 @@ export function useAppHandlers({
             )
                 return
         }
+
+        // Vérifier si un fichier JSON de configuration existe
+        const isJsonConfigFileExist =
+            await window.electronAPI.handleIsJsonConfigFileExist(workDir)
+        if (isJsonConfigFileExist) {
+            // Afficher une boîte de dialogue de confirmation
+            const shouldContinue = await window.electronAPI.showConfirmDialog({
+                title: t('Do you really want to launch a simple measure?'),
+                message: t(
+                    'A complex measure configuration file has been detected in the selected folder, it seems that a complex measure is more appropriate.'
+                ),
+                buttons: [t('Cancel'), t('Continue')],
+            })
+            if (!shouldContinue) {
+                frontLog.debug(
+                    'User cancelled simple measure due to JSON config file'
+                )
+                return
+            }
+        }
+
         // Capturer l'état actuel des messages console pour filtrer ensuite
         setConsoleMessagesSnapshot(consoleMessages)
         await showHidePopinDuringProcess(

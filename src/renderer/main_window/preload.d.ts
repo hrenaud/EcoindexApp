@@ -47,6 +47,11 @@ declare global {
             handleSelectFolder: () => Promise<string>
             handleSelectPuppeteerFilePath: () => Promise<string>
             handleIsJsonConfigFileExist: (workDir: string) => Promise<boolean>
+            showConfirmDialog: (options: {
+                title: string
+                message: string
+                buttons: string[]
+            }) => Promise<boolean>
             sendDatasToFront: (callback: (data: any) => void) => () => void
             changeLanguageInFront: (
                 callback: (lng: string) => void

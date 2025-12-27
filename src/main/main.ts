@@ -1,4 +1,4 @@
-import { BrowserWindow, app, ipcMain } from 'electron'
+import { BrowserWindow, app, ipcMain, dialog } from 'electron'
 import i18n, { initializeI18n } from '../configs/i18next.config'
 
 import { LinuxUpdate } from '../class/LinuxUpdate'
@@ -211,6 +211,42 @@ ipcMain.handle(channels.SELECT_PUPPETEER_FILE, async (event) => {
 ipcMain.handle(channels.IS_JSON_CONFIG_FILE_EXIST, async (event, workDir) => {
     return await handleIsJsonConfigFileExist(event, workDir)
 })
+
+// Handler IPC pour afficher une boîte de dialogue de confirmation
+ipcMain.handle(
+    channels.SHOW_CONFIRM_DIALOG,
+    async (
+        _event,
+        options: { title: string; message: string; buttons: string[] }
+    ) => {
+        const mainLog = getMainLog().scope('main/showConfirmDialog')
+        try {
+            // Utiliser la fenêtre principale ou la première fenêtre disponible
+            const window =
+                win ||
+                BrowserWindow.getFocusedWindow() ||
+                BrowserWindow.getAllWindows()[0]
+            if (!window) {
+                mainLog.error('No window available for showConfirmDialog')
+                return false
+            }
+            const response = await dialog.showMessageBox(window, {
+                type: 'question',
+                title: options.title,
+                message: options.title,
+                detail: options.message,
+                buttons: options.buttons,
+                defaultId: 1, // Par défaut, le deuxième bouton (Continuer)
+                cancelId: 0, // Le premier bouton (Annuler) annule la boîte de dialogue
+            })
+            // Retourne true si l'utilisateur a cliqué sur "Continuer" (index 1), false sinon
+            return response.response === 1
+        } catch (error) {
+            mainLog.error('Error in showConfirmDialog', error)
+            return false
+        }
+    }
+)
 
 async function createWindow() {
     win = new BrowserWindow({
