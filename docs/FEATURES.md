@@ -49,7 +49,7 @@ L'application supporte le mode sombre avec détection automatique du mode systè
 
 ### Composant DarkModeSwitcher
 
-**Fichier** : `src/components/DarkModeSwitcher.tsx`
+**Fichier** : `src/renderer/components/DarkModeSwitcher.tsx`
 
 Le composant affiche :
 
@@ -155,7 +155,7 @@ L'application affiche une popin d'initialisation pendant le processus d'initiali
 
 ### Composant InformationPopin
 
-**Fichier** : `src/components/InformationPopin.tsx`
+**Fichier** : `src/renderer/components/InformationPopin.tsx`
 
 **Props** :
 

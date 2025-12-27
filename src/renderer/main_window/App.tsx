@@ -4,36 +4,41 @@ import {
     CardDescription,
     CardHeader,
     CardTitle,
-} from '@/components/ui/card'
+} from '@/renderer/components/ui/card'
 import type {
     IAdvancedMesureData,
     IJsonMesureData,
     IKeyValue,
 } from '@/interface'
 import { InitalizationMessage, InputField } from '@/types'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from '@/renderer/components/ui/tabs'
 import { store as storeConstants, utils } from '@/shared/constants'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/renderer/components/ui/button'
 import { ConfigData } from '@/class/ConfigData'
-import { ConsoleApp } from '@/components/ConsoleApp'
-import { DarkModeSwitcher } from '@/components/DarkModeSwitcher'
-import { Footer } from '@/components/Footer'
-import { Header } from '@/components/Header'
-import { InformationPopin } from '@/components/InformationPopin'
-import { InitErrorAlerts } from '@/components/InitErrorAlerts'
+import { ConsoleApp } from '@/renderer/components/ConsoleApp'
+import { DarkModeSwitcher } from '@/renderer/components/DarkModeSwitcher'
+import { Footer } from '@/renderer/components/Footer'
+import { Header } from '@/renderer/components/Header'
+import { InformationPopin } from '@/renderer/components/InformationPopin'
+import { InitErrorAlerts } from '@/renderer/components/InitErrorAlerts'
 import { InitalizationData } from '@/class/InitalizationData'
-import { Input } from '@/components/ui/input'
-import { JsonPanMesure } from '@/components/JsonPanMesure'
-import { LanguageSwitcher } from '@/components/LanguageSwitcher'
+import { Input } from '@/renderer/components/ui/input'
+import { JsonPanMesure } from '@/renderer/components/JsonPanMesure'
+import { LanguageSwitcher } from '@/renderer/components/LanguageSwitcher'
 import { LinuxUpdate } from '@/class/LinuxUpdate'
-import { MySkeleton } from '@/components/MySkeleton'
-import { PopinLoading } from '@/components/PopinLoading'
-import { SimplePanMesure } from '@/components/SimplePanMesure'
-import { SplashScreen } from '@/components/SplashScreen'
-import { TypographyP } from '@/components/ui/typography/TypographyP'
-import { cn } from '@/lib/utils'
+import { MySkeleton } from '@/renderer/components/MySkeleton'
+import { PopinLoading } from '@/renderer/components/PopinLoading'
+import { SimplePanMesure } from '@/renderer/components/SimplePanMesure'
+import { SplashScreen } from '@/renderer/components/SplashScreen'
+import { TypographyP } from '@/renderer/components/ui/typography/TypographyP'
+import { cn } from '@/renderer/lib/utils'
 import i18nResources from '@/configs/i18nResources'
 import log from 'electron-log/renderer'
 import packageJson from '../../../package.json'

@@ -27,23 +27,48 @@ EcoindexApp-2025/
 │   │       ├── SendMessageToFrontConsole.ts
 │   │       └── SendMessageToFrontLog.ts
 │   ├── renderer/                 # Renderer Process React
-│   │   └── main_window/
-│   │       ├── App.tsx           # Composant principal React
-│   │       ├── main.tsx          # Point d'entrée React
-│   │       ├── index.css         # Styles globaux
-│   │       └── preload.d.ts      # Types TypeScript pour preload
-│   ├── components/               # Composants React
-│   │   ├── InformationPopin.tsx  # Popin d'initialisation
-│   │   ├── LanguageSwitcher.tsx # Sélecteur de langue
-│   │   ├── DarkModeSwitcher.tsx # Sélecteur de mode sombre
-│   │   ├── SplashScreen.tsx      # Écran de démarrage
-│   │   ├── MarkdownReader.tsx    # Lecteur de markdown
-│   │   └── ui/                  # Composants Shadcn/ui
-│   │       ├── button.tsx
-│   │       ├── card.tsx
-│   │       ├── progress.tsx     # Barre de progression
-│   │       ├── switch.tsx       # Switch (mode sombre)
-│   │       └── checkbox.tsx     # Checkbox
+│   │   ├── main_window/
+│   │   │   ├── App.tsx           # Composant principal React
+│   │   │   ├── main.tsx          # Point d'entrée React
+│   │   │   ├── index.css         # Styles globaux
+│   │   │   └── preload.d.ts      # Types TypeScript pour preload
+│   │   ├── components/           # Composants React (spécifiques au renderer)
+│   │   │   ├── InformationPopin.tsx  # Popin d'initialisation
+│   │   │   ├── LanguageSwitcher.tsx # Sélecteur de langue
+│   │   │   ├── DarkModeSwitcher.tsx # Sélecteur de mode sombre
+│   │   │   ├── SplashScreen.tsx      # Écran de démarrage
+│   │   │   ├── MarkdownReader.tsx    # Lecteur de markdown
+│   │   │   ├── ConsoleApp.tsx        # Console de l'application
+│   │   │   ├── Header.tsx            # En-tête de l'application
+│   │   │   ├── Footer.tsx            # Pied de page
+│   │   │   ├── SimplePanMesure.tsx   # Panneau de mesure simple
+│   │   │   ├── JsonPanMesure.tsx     # Panneau de mesure JSON
+│   │   │   ├── AdvConfiguration.tsx  # Configuration avancée
+│   │   │   ├── KeyValue.tsx          # Composant clé-valeur
+│   │   │   ├── SimpleUrlsList.tsx    # Liste d'URLs simples
+│   │   │   ├── InitErrorAlerts.tsx   # Alertes d'erreur d'initialisation
+│   │   │   ├── MySkeleton.tsx       # Composant skeleton
+│   │   │   ├── PopinLoading.tsx      # Popin de chargement
+│   │   │   ├── SimpleTooltip.tsx     # Tooltip simple
+│   │   │   ├── AlertBox.tsx          # Boîte d'alerte
+│   │   │   └── ui/                  # Composants Shadcn/ui
+│   │   │       ├── button.tsx
+│   │   │       ├── card.tsx
+│   │   │       ├── progress.tsx     # Barre de progression
+│   │   │       ├── switch.tsx       # Switch (mode sombre)
+│   │   │       ├── checkbox.tsx     # Checkbox
+│   │   │       ├── input.tsx        # Input
+│   │   │       ├── textarea.tsx     # Textarea
+│   │   │       ├── tabs.tsx         # Tabs
+│   │   │       ├── tooltip.tsx      # Tooltip
+│   │   │       ├── skeleton.tsx     # Skeleton
+│   │   │       ├── alert.tsx        # Alert
+│   │   │       └── typography/      # Composants typographiques
+│   │   │           ├── TypographyH2.tsx
+│   │   │           ├── TypographyH3.tsx
+│   │   │           └── TypographyP.tsx
+│   │   └── lib/                  # Utilitaires pour le renderer
+│   │       └── utils.ts          # Fonctions utilitaires (cn, etc.)
 │   ├── configs/                  # Configurations
 │   │   ├── i18next.config.ts    # i18n pour main process
 │   │   └── i18nResources.ts     # i18n pour renderer process
@@ -198,7 +223,7 @@ EcoindexApp-2025/
 - `lib.asar` : Archive des scripts Node.js (créée via `npm run asar:pack:lib`)
 - `md/` : Fichiers markdown (splash screen, etc.)
 
-### `src/lib/`
+### `lib/` (dans le dossier racine du projet)
 
 **Scripts Node.js exécutés via `utilityProcess`** :
 

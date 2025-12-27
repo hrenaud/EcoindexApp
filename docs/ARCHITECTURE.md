@@ -48,7 +48,7 @@ L'application suit l'architecture standard Electron avec séparation stricte ent
 
 ### InformationPopin
 
-**Fichier** : `src/components/InformationPopin.tsx`
+**Fichier** : `src/renderer/components/InformationPopin.tsx`
 
 Composant de popin modal pour afficher les messages d'initialisation avec :
 
@@ -66,7 +66,7 @@ Composant de popin modal pour afficher les messages d'initialisation avec :
 
 ### DarkModeSwitcher
 
-**Fichier** : `src/components/DarkModeSwitcher.tsx`
+**Fichier** : `src/renderer/components/DarkModeSwitcher.tsx`
 
 Composant de basculement entre mode clair et mode sombre avec :
 
@@ -90,7 +90,7 @@ Composant de basculement entre mode clair et mode sombre avec :
 
 ### SplashScreen
 
-**Fichier** : `src/components/SplashScreen.tsx`
+**Fichier** : `src/renderer/components/SplashScreen.tsx`
 
 Composant modal pour afficher l'écran de démarrage avec contenu markdown :
 
@@ -116,7 +116,7 @@ Composant modal pour afficher l'écran de démarrage avec contenu markdown :
 
 ### MarkdownReader
 
-**Fichier** : `src/components/MarkdownReader.tsx`
+**Fichier** : `src/renderer/components/MarkdownReader.tsx`
 
 Composant simple pour afficher du contenu markdown :
 

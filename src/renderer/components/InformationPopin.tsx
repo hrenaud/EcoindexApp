@@ -1,7 +1,7 @@
 import { FC, ReactNode } from 'react'
 
 import { ReloadIcon } from '@radix-ui/react-icons'
-import { cn } from '@/lib/utils'
+import { cn } from '@/renderer/lib/utils'
 
 export interface InformationPopinProps {
     children: ReactNode

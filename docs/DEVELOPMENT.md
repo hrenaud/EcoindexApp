@@ -72,9 +72,11 @@ Met à jour les packages Lighthouse dans le dossier `lib/`.
 
 - **Main Process** : `src/main/`
 - **Renderer Process** : `src/renderer/`
-- **Composants partagés** : `src/components/`
+    - **Composants React** : `src/renderer/components/`
+    - **Utilitaires renderer** : `src/renderer/lib/`
 - **Configurations** : `src/configs/`
 - **Traductions** : `src/locales/`
+- **Code partagé** : `src/shared/`, `src/class/`, `src/types.d.ts`, `src/interface.d.ts`
 - **Classes/Interfaces** : `src/class/`, `src/types.d.ts`, `src/interface.d.ts`
 - **Constantes** : `src/shared/constants.ts`
 

@@ -1,6 +1,6 @@
 import { Trans, useTranslation } from 'react-i18next'
 
-import iconAsso from '../../assets/asso.svg'
+import iconAsso from '../../../assets/asso.svg'
 
 export const Footer = ({
     appVersion,

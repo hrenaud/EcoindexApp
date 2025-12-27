@@ -5,11 +5,11 @@ import { Button } from './ui/button'
 import { Checkbox } from './ui/checkbox'
 import { CheckedState } from '@radix-ui/react-checkbox'
 import { MarkdownReader } from './MarkdownReader'
-import { cn } from '@/lib/utils'
+import { cn } from '@/renderer/lib/utils'
 import { convertVersion } from '@/shared/utils'
-import mdContentEN from '../extraResources/md/splash-content.en.md?raw'
-import mdContentFR from '../extraResources/md/splash-content.fr.md?raw'
-import pkg from '../../package.json'
+import mdContentEN from '../../extraResources/md/splash-content.en.md?raw'
+import mdContentFR from '../../extraResources/md/splash-content.fr.md?raw'
+import pkg from '../../../package.json'
 
 export const SplashScreen = ({
     id,

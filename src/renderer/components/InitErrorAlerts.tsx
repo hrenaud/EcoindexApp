@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { AlertBox } from './AlertBox'
 import { Button } from './ui/button'
-import { ConfigData } from '../class/ConfigData'
+import { ConfigData } from '../../class/ConfigData'
 import { SimpleTooltip } from './SimpleTooltip'
 import log from 'electron-log/renderer'
 import { useTranslation } from 'react-i18next'
