@@ -174,7 +174,7 @@ EcoindexApp-2025/
 **Fichiers clés** :
 
 - `main.tsx` : Point d'entrée React, initialisation i18n
-- `App.tsx` : Composant principal de l'application (refactorisé, ~356 lignes)
+- `App.tsx` : Composant principal de l'application (refactorisé, ~404 lignes)
 - `hooks/` : Hooks personnalisés pour séparer la logique métier
     - `useAppState.ts` : Gestion centralisée de tous les états React
     - `useAppUtils.ts` : Fonctions utilitaires mémorisées (sleep, notifications, scrolling)
@@ -184,13 +184,15 @@ EcoindexApp-2025/
 - `index.css` : Styles globaux Tailwind CSS avec styles personnalisés
 - `preload.d.ts` : Types TypeScript pour les APIs exposées
 
-### `src/components/`
+### `src/renderer/components/`
 
 **Composants React réutilisables**.
 
 - `DarkModeSwitcher.tsx` : Sélecteur de mode sombre/clair
 - `InformationPopin.tsx` : Popin modal pour afficher les messages d'initialisation
 - `LanguageSwitcher.tsx` : Sélecteur de langue
+- `PopinLoading.tsx` : Popin de chargement avec affichage des logs de mesure
+- `ConsoleApp.tsx` : Composant pour afficher les messages de console
 - `ui/` : Composants Shadcn/ui (button, card, progress, switch, etc.)
 
 ### `src/configs/`
