@@ -3,16 +3,10 @@ import Store from 'electron-store'
 import { channels } from '../../../shared/constants'
 import { getMainLog } from '../../main'
 import { getMainWindow } from '../../memory'
+import { convertVersion } from '../../utils-node'
 import pkg from '../../../../package.json'
 
 const store = new Store()
-
-/**
- * Convert Version to string (local util for main process)
- */
-const convertVersion = (version: string) => {
-    return version.replace(/\./gm, '_').replace(/-/gm, '_')
-}
 
 export const handleSplashScreen = async (
     _event: IpcMainEvent | null,
