@@ -92,6 +92,12 @@ function TheApp() {
     )
 
     const { t } = useTranslation()
+    // Ref pour stocker la fonction de traduction la plus récente
+    const tRef = useRef(t)
+    // Mettre à jour la ref à chaque changement de langue
+    useEffect(() => {
+        tRef.current = t
+    }, [t])
 
     // Debug: Log component render
     useEffect(() => {
@@ -111,6 +117,11 @@ function TheApp() {
         | ((_event: any, message: string, ...optionalParams: any[]) => void)
         | null
     >(null)
+    // Refs pour stocker les fonctions de cleanup des listeners IPC
+    const cleanupLinuxVersionRef = useRef<(() => void) | null>(null)
+    const cleanupSendDatasRef = useRef<(() => void) | null>(null)
+    const cleanupChangeLanguageRef = useRef<(() => void) | null>(null)
+    const cleanupInitializationRef = useRef<(() => void) | null>(null)
     /**
      * Utils, wait method.
      * @param {number} ms Milisecond of the timer.
@@ -367,55 +378,68 @@ function TheApp() {
         /**
          * Handler (main->front), get LinuxUpdate from main
          */
-        window.electronAPI.handleNewLinuxVersion((linuxUpdate: LinuxUpdate) => {
-            frontLog.debug(`linuxUpdate`, linuxUpdate)
-            const resp = window.confirm(
-                t(
-                    `A new version of the app is avalaible ({{version}}), do you want to download it?`,
-                    { version: linuxUpdate.latestReleaseVersion }
-                )
+        // Nettoyer le listener précédent s'il existe
+        if (cleanupLinuxVersionRef.current) {
+            cleanupLinuxVersionRef.current()
+        }
+        cleanupLinuxVersionRef.current =
+            window.electronAPI.handleNewLinuxVersion(
+                (linuxUpdate: LinuxUpdate) => {
+                    frontLog.debug(`linuxUpdate`, linuxUpdate)
+                    const resp = window.confirm(
+                        tRef.current(
+                            `A new version of the app is avalaible ({{version}}), do you want to download it?`,
+                            { version: linuxUpdate.latestReleaseVersion }
+                        )
+                    )
+                    if (resp === true) {
+                        window.open(
+                            linuxUpdate.latestReleaseURL,
+                            `_blank`,
+                            'noopener,noreferrer'
+                        )
+                    }
+                }
             )
-            if (resp === true) {
-                window.open(
-                    linuxUpdate.latestReleaseURL,
-                    `_blank`,
-                    'noopener,noreferrer'
-                )
-            }
-        })
         /**
          * Handler (main->front), get data from main
          */
-        window.electronAPI.sendDatasToFront((data: any) => {
-            if (typeof data === 'string') {
-                const _data = JSON.parse(data)
-                frontLog.debug(`sendDatasToFront is a string`, _data)
-                setDatasFromHost((oldObject) => ({
-                    ...oldObject,
-                    ..._data,
-                }))
-            } else {
-                if (data.type && (data.result || data.error)) {
-                    setDatasFromHost((oldObject) => {
-                        const o: any = {
-                            ...oldObject,
-                        }
-                        const type = (data as ConfigData).type
-                        o[type] = data
-                        return o
-                    })
-                } else {
-                    frontLog.debug(
-                        `sendDatasToFront is object`,
-                        JSON.stringify(data, null, 2)
-                    )
+        // Nettoyer le listener précédent s'il existe
+        if (cleanupSendDatasRef.current) {
+            cleanupSendDatasRef.current()
+        }
+        cleanupSendDatasRef.current = window.electronAPI.sendDatasToFront(
+            (data: any) => {
+                if (typeof data === 'string') {
+                    const _data = JSON.parse(data)
+                    frontLog.debug(`sendDatasToFront is a string`, _data)
                     setDatasFromHost((oldObject) => ({
                         ...oldObject,
-                        ...data,
+                        ..._data,
                     }))
+                } else {
+                    if (data.type && (data.result || data.error)) {
+                        setDatasFromHost((oldObject) => {
+                            const o: any = {
+                                ...oldObject,
+                            }
+                            const type = (data as ConfigData).type
+                            o[type] = data
+                            return o
+                        })
+                    } else {
+                        frontLog.debug(
+                            `sendDatasToFront is object`,
+                            JSON.stringify(data, null, 2)
+                        )
+                        setDatasFromHost((oldObject) => ({
+                            ...oldObject,
+                            ...data,
+                        }))
+                    }
                 }
             }
-        })
+        )
 
         /**
          * Handler (main->front), get console messages from main via ASYNCHRONOUS_LOG
@@ -438,7 +462,12 @@ function TheApp() {
             }
         }
 
+        // Nettoyer le listener précédent avant d'en ajouter un nouveau
         if (window.ipcRenderer && handleConsoleMessageRef.current) {
+            window.ipcRenderer.off(
+                'asynchronous-log',
+                handleConsoleMessageRef.current
+            )
             window.ipcRenderer.on(
                 'asynchronous-log',
                 handleConsoleMessageRef.current
@@ -448,20 +477,25 @@ function TheApp() {
         /**
          * Handler (main->front), Change language from Menu.
          */
-        window.electronAPI.changeLanguageInFront((lng: string) => {
-            try {
-                i18nResources.changeLanguage(lng, (err, t) => {
-                    if (err)
-                        return frontLog.error(
-                            'something went wrong loading',
-                            err
-                        )
-                    t('key') // -> same as i18next.t
-                })
-            } catch (error) {
-                frontLog.error(error)
-            }
-        })
+        // Nettoyer le listener précédent s'il existe
+        if (cleanupChangeLanguageRef.current) {
+            cleanupChangeLanguageRef.current()
+        }
+        cleanupChangeLanguageRef.current =
+            window.electronAPI.changeLanguageInFront((lng: string) => {
+                try {
+                    i18nResources.changeLanguage(lng, (err, t) => {
+                        if (err)
+                            return frontLog.error(
+                                'something went wrong loading',
+                                err
+                            )
+                        t('key') // -> same as i18next.t
+                    })
+                } catch (error) {
+                    frontLog.error(error)
+                }
+            })
 
         /**
          * Read language set in Store.
@@ -488,66 +522,88 @@ function TheApp() {
             frontLog.error('window.initialisationAPI is not available!')
             return
         }
-        window.initialisationAPI.sendInitializationMessages(
-            async (message: InitalizationMessage) => {
-                frontLog.debug(`sendInitializationMessages`, message)
+        // Nettoyer le listener précédent s'il existe
+        if (cleanupInitializationRef.current) {
+            cleanupInitializationRef.current()
+        }
+        cleanupInitializationRef.current =
+            window.initialisationAPI.sendInitializationMessages(
+                async (message: InitalizationMessage) => {
+                    frontLog.debug(`sendInitializationMessages`, message)
 
-                if (message.type === 'data') {
-                    switch (message.data?.type) {
-                        case InitalizationData.WORKDIR:
-                            setWorkDir(message.data.result as string)
-                            break
-                        case InitalizationData.HOMEDIR:
-                            setHomeDir(message.data.result as string)
-                            break
-                        case InitalizationData.APP_READY:
-                            setAppReady(message.data.result as boolean)
-                            break
-                        case InitalizationData.PUPPETEER_BROWSER_INSTALLED:
-                            setIsPuppeteerBrowserInstalled(
-                                message.data.result as boolean
-                            )
-                            setPuppeteerBrowserInstalledVersion(
-                                message.data.result as string
-                            )
-                            break
-                        case InitalizationData.APP_CAN_NOT_BE_LAUNCHED:
-                            setInformationPopinTitle(`${message.title}`)
-                            setInformationPopinMessage(message.message)
-                            break
+                    if (message.type === 'data') {
+                        switch (message.data?.type) {
+                            case InitalizationData.WORKDIR:
+                                setWorkDir(message.data.result as string)
+                                break
+                            case InitalizationData.HOMEDIR:
+                                setHomeDir(message.data.result as string)
+                                break
+                            case InitalizationData.APP_READY:
+                                setAppReady(message.data.result as boolean)
+                                break
+                            case InitalizationData.PUPPETEER_BROWSER_INSTALLED:
+                                setIsPuppeteerBrowserInstalled(
+                                    message.data.result as boolean
+                                )
+                                setPuppeteerBrowserInstalledVersion(
+                                    message.data.result as string
+                                )
+                                break
+                            case InitalizationData.APP_CAN_NOT_BE_LAUNCHED:
+                                setInformationPopinTitle(`${message.title}`)
+                                setInformationPopinMessage(message.message)
+                                break
+                        }
+                    } else {
+                        setInformationPopinTitle(message.title)
+                        setInformationPopinMessage(message.message)
+                        setInformationPopinErrorLink(
+                            message?.errorLink || { label: '', url: '' }
+                        )
                     }
-                } else {
-                    setInformationPopinTitle(message.title)
-                    setInformationPopinMessage(message.message)
-                    setInformationPopinErrorLink(
-                        message?.errorLink || { label: '', url: '' }
-                    )
-                }
 
-                if (message.modalType === 'started') {
-                    setDisplayInformationPopin(true)
-                } else if (message.modalType === 'completed') {
-                    await _sleep(2000)
-                    setDisplayInformationPopin(false)
-                } else if (message.modalType === 'error') {
-                    setDisplayInformationPopin(true)
-                    setShowInformationSpinner(false)
-                    setInformationPopinIsAlert(true)
+                    if (message.modalType === 'started') {
+                        setDisplayInformationPopin(true)
+                    } else if (message.modalType === 'completed') {
+                        await _sleep(2000)
+                        setDisplayInformationPopin(false)
+                    } else if (message.modalType === 'error') {
+                        setDisplayInformationPopin(true)
+                        setShowInformationSpinner(false)
+                        setInformationPopinIsAlert(true)
+                    }
                 }
-            }
-        )
+            )
 
-        // Cleanup: retirer l'écouteur IPC quand le composant se démonte ou se re-rend
+        // Cleanup: retirer tous les écouteurs IPC quand le composant se démonte ou se re-rend
         return () => {
+            // Nettoyer les listeners IPC via les fonctions de cleanup
+            if (cleanupLinuxVersionRef.current) {
+                cleanupLinuxVersionRef.current()
+                cleanupLinuxVersionRef.current = null
+            }
+            if (cleanupSendDatasRef.current) {
+                cleanupSendDatasRef.current()
+                cleanupSendDatasRef.current = null
+            }
+            if (cleanupChangeLanguageRef.current) {
+                cleanupChangeLanguageRef.current()
+                cleanupChangeLanguageRef.current = null
+            }
+            if (cleanupInitializationRef.current) {
+                cleanupInitializationRef.current()
+                cleanupInitializationRef.current = null
+            }
+            // Nettoyer le listener asynchronous-log
             if (window.ipcRenderer && handleConsoleMessageRef.current) {
-                // Utiliser off avec la fonction stockée dans useRef
                 window.ipcRenderer.off(
                     'asynchronous-log',
                     handleConsoleMessageRef.current
                 )
             }
         }
-    }, [t])
+    }, []) // Dépendances vides : les listeners ne doivent être ajoutés qu'une seule fois au montage
 
     /**
      * Detect workDir change.

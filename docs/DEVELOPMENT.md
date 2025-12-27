@@ -365,6 +365,77 @@ useEffect(() => {
 
 **Important** : `window.ipcRenderer` n'a pas de méthode `removeAllListeners()`. Il faut utiliser `off()` avec la même référence de fonction pour retirer l'écouteur correctement. Cela garantit qu'il n'y a qu'un seul écouteur actif à la fois et évite les messages dupliqués.
 
+### Gestion des listeners IPC et prévention des fuites mémoire
+
+**Problème** : Les listeners IPC peuvent être ajoutés plusieurs fois lors des re-renders du composant, causant des fuites mémoire et des avertissements `MaxListenersExceededWarning`.
+
+**Solution** : Utiliser des `useRef` pour stocker les fonctions de cleanup retournées par les APIs IPC et les appeler dans le cleanup du `useEffect`.
+
+**Implémentation dans `App.tsx`** :
+
+```typescript
+// Déclarer les refs pour stocker les fonctions de cleanup
+const cleanupLinuxVersionRef = useRef<(() => void) | null>(null)
+const cleanupSendDatasRef = useRef<(() => void) | null>(null)
+const cleanupChangeLanguageRef = useRef<(() => void) | null>(null)
+const cleanupInitializationRef = useRef<(() => void) | null>(null)
+
+useEffect(() => {
+    // Nettoyer le listener précédent s'il existe
+    if (cleanupLinuxVersionRef.current) {
+        cleanupLinuxVersionRef.current()
+    }
+    // Stocker la nouvelle fonction de cleanup
+    cleanupLinuxVersionRef.current = window.electronAPI.handleNewLinuxVersion(
+        (linuxUpdate: LinuxUpdate) => {
+            // ... logique du handler
+        }
+    )
+
+    // Répéter pour tous les autres listeners...
+
+    // Cleanup: retirer tous les écouteurs IPC
+    return () => {
+        if (cleanupLinuxVersionRef.current) {
+            cleanupLinuxVersionRef.current()
+            cleanupLinuxVersionRef.current = null
+        }
+        // Répéter pour tous les autres listeners...
+    }
+}, [t])
+```
+
+**Avantages** :
+
+- Prévention des fuites mémoire
+- Évite les avertissements `MaxListenersExceededWarning`
+- Garantit qu'il n'y a qu'un seul listener actif par événement IPC
+- Nettoyage automatique lors du démontage du composant ou des re-renders
+
+**Listeners concernés** :
+
+- `host-informations-back` (via `sendDatasToFront`)
+- `alert-linux-update` (via `handleNewLinuxVersion`)
+- `asynchronous-log` (via `window.ipcRenderer.on`)
+- `change-language-to-front` (via `changeLanguageInFront`)
+- `initialization-messages` (via `sendInitializationMessages`)
+
+**Note importante sur `asynchronous-log`** :
+Le listener `asynchronous-log` nécessite un traitement spécial car il utilise directement `window.ipcRenderer.on()` au lieu d'une API wrapper. Il faut :
+
+1. Nettoyer le listener avant de le réajouter : `window.ipcRenderer.off('asynchronous-log', handleConsoleMessageRef.current)` puis `window.ipcRenderer.on(...)`
+2. Utiliser un tableau de dépendances vide `[]` pour le `useEffect` principal afin d'éviter les réexécutions
+3. Si des traductions sont utilisées dans les callbacks, utiliser un `tRef` pour maintenir les traductions à jour sans réexécuter le `useEffect` :
+
+```typescript
+const tRef = useRef(t)
+useEffect(() => {
+    tRef.current = t
+}, [t])
+
+// Dans les callbacks, utiliser tRef.current au lieu de t
+```
+
 ### Popin d'initialisation
 
 Le composant `InformationPopin` affiche les messages d'initialisation dans le renderer. Pour l'utiliser :
