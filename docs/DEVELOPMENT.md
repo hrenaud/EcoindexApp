@@ -311,18 +311,26 @@ Le composant `ConsoleApp` affiche les messages envoyés depuis le main process v
 
 1. Le main process appelle `_sendMessageToFrontConsole(message, ...optionalParams)`
 2. Cela envoie un événement IPC `asynchronous-log` au renderer
-3. `App.tsx` écoute cet événement via `window.ipcRenderer.on('asynchronous-log', ...)`
+3. `useIpcListeners` écoute cet événement via `window.ipcRenderer.on('asynchronous-log', ...)`
 4. Les messages sont accumulés dans l'état `consoleMessages` avec un timestamp
 5. `ConsoleApp` reçoit `consoleMessages` via une prop et l'affiche dans le `Textarea`
 
-**Gestion du cleanup** :
+**Gestion du cleanup et déduplication** :
 
-Pour éviter les messages dupliqués lors des re-renders, la fonction de callback est stockée dans un `useRef` :
+Pour éviter les messages dupliqués lors des re-renders, plusieurs mécanismes sont en place :
+
+1. **Référence stable** : La fonction de callback est stockée dans un `useRef` pour maintenir une référence stable
+2. **Flag de suivi** : Un flag `isListenerAddedRef` garantit qu'un seul écouteur est ajouté
+3. **Déduplication** : Un mécanisme de déduplication ignore les messages identiques reçus dans les 100ms
 
 ```typescript
 const handleConsoleMessageRef = useRef<
     ((_event: any, message: string, ...optionalParams: any[]) => void) | null
 >(null)
+const isListenerAddedRef = useRef<boolean>(false)
+const lastMessageRef = useRef<{ message: string; timestamp: number } | null>(
+    null
+)
 
 useEffect(() => {
     // Créer la fonction une seule fois
@@ -336,6 +344,20 @@ useEffect(() => {
                 optionalParams && optionalParams.length > 0
                     ? `${message} ${optionalParams.join(' ')}`
                     : message || ''
+
+            // Déduplication : ignorer les messages identiques reçus dans les 100ms
+            const now = Date.now()
+            const lastMessage = lastMessageRef.current
+            if (
+                lastMessage &&
+                lastMessage.message === logMessage &&
+                now - lastMessage.timestamp < 100
+            ) {
+                return // Message dupliqué, l'ignorer
+            }
+
+            lastMessageRef.current = { message: logMessage, timestamp: now }
+
             setConsoleMessages((prev) => {
                 const timestamp = new Date().toLocaleTimeString()
                 return `${prev}${prev ? '\n' : ''}[${timestamp}] ${logMessage}`
@@ -343,27 +365,123 @@ useEffect(() => {
         }
     }
 
-    // Ajouter l'écouteur
+    // Nettoyer l'écouteur existant avant d'en ajouter un nouveau
     if (window.ipcRenderer && handleConsoleMessageRef.current) {
-        window.ipcRenderer.on(
+        window.ipcRenderer.off(
             'asynchronous-log',
             handleConsoleMessageRef.current
         )
+
+        // Ajouter le nouvel écouteur uniquement s'il n'a pas déjà été ajouté
+        if (!isListenerAddedRef.current) {
+            window.ipcRenderer.on(
+                'asynchronous-log',
+                handleConsoleMessageRef.current
+            )
+            isListenerAddedRef.current = true
+        }
     }
 
     // Cleanup: retirer l'écouteur avec la même référence
     return () => {
-        if (window.ipcRenderer && handleConsoleMessageRef.current) {
+        if (
+            window.ipcRenderer &&
+            handleConsoleMessageRef.current &&
+            isListenerAddedRef.current
+        ) {
             window.ipcRenderer.off(
                 'asynchronous-log',
                 handleConsoleMessageRef.current
             )
+            isListenerAddedRef.current = false
         }
     }
-}, [t])
+}, [])
+```
+
+**Auto-scroll** :
+
+Le `Textarea` de `ConsoleApp` scroll automatiquement vers le bas quand de nouveaux messages arrivent :
+
+```typescript
+const consoleTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+useEffect(() => {
+    if (consoleTextareaRef.current) {
+        const textarea = consoleTextareaRef.current
+        textarea.scrollTop = textarea.scrollHeight
+    }
+}, [consoleMessages])
 ```
 
 **Important** : `window.ipcRenderer` n'a pas de méthode `removeAllListeners()`. Il faut utiliser `off()` avec la même référence de fonction pour retirer l'écouteur correctement. Cela garantit qu'il n'y a qu'un seul écouteur actif à la fois et évite les messages dupliqués.
+
+### Affichage des logs de mesure dans la popin
+
+Lorsqu'une mesure est lancée (simple ou JSON), une popin `PopinLoading` s'affiche avec un `Textarea` dans le footer qui affiche uniquement les logs générés depuis le début de la mesure.
+
+**Flux** :
+
+1. Au début de `runSimpleMesures` ou `runJsonSaveAndCollect`, un snapshot de `consoleMessages` est capturé dans `consoleMessagesSnapshot`
+2. Les messages continuent d'être ajoutés à `consoleMessages` via l'écouteur IPC
+3. `measureConsoleMessages` calcule la différence entre `consoleMessages` et `consoleMessagesSnapshot` pour n'afficher que les nouveaux messages
+4. Le `Textarea` dans le footer de `PopinLoading` affiche `measureConsoleMessages`
+
+**Implémentation** :
+
+```typescript
+// Dans useAppHandlers.ts
+const runSimpleMesures = async () => {
+    // Capturer l'état actuel des messages console pour filtrer ensuite
+    setConsoleMessagesSnapshot(consoleMessages)
+    // ... reste du code
+}
+
+// Dans App.tsx
+const measureConsoleMessages = (() => {
+    if (!consoleMessagesSnapshot || !consoleMessagesSnapshot.trim()) {
+        return consoleMessages.trim()
+    }
+
+    if (!consoleMessages || !consoleMessages.trim()) {
+        return ''
+    }
+
+    // Vérifier si consoleMessages commence par le snapshot
+    if (consoleMessages.startsWith(consoleMessagesSnapshot)) {
+        const newMessages = consoleMessages.slice(
+            consoleMessagesSnapshot.length
+        )
+        return newMessages.replace(/^\n+/, '').trim()
+    }
+
+    // Si le snapshot n'est pas au début, chercher son index
+    const snapshotIndex = consoleMessages.indexOf(consoleMessagesSnapshot)
+
+    if (snapshotIndex === -1) {
+        return consoleMessages.trim()
+    }
+
+    const newMessages = consoleMessages.slice(
+        snapshotIndex + consoleMessagesSnapshot.length
+    )
+    return newMessages.replace(/^\n+/, '').trim()
+})()
+
+// Auto-scroll pour le Textarea de la popin
+const popinTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+useEffect(() => {
+    if (popinTextareaRef.current && displayPopin) {
+        const textarea = popinTextareaRef.current
+        textarea.scrollTop = textarea.scrollHeight
+    }
+}, [measureConsoleMessages, displayPopin])
+```
+
+**Auto-scroll** :
+
+Le `Textarea` dans le footer de `PopinLoading` scroll automatiquement vers le bas quand de nouveaux messages arrivent, permettant à l'utilisateur de suivre la progression de la mesure en temps réel.
 
 ### Gestion des listeners IPC et prévention des fuites mémoire
 

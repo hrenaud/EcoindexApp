@@ -43,6 +43,8 @@ export function useAppState() {
     // États pour les mesures
     const [envVars, setEnvVars] = useState<IKeyValue>({})
     const [consoleMessages, setConsoleMessages] = useState<string>('')
+    const [consoleMessagesSnapshot, setConsoleMessagesSnapshot] =
+        useState<string>('')
     const [urlsList, setUrlsList] = useState<InputField[]>([
         { value: 'https://www.ecoindex.fr/' },
         { value: 'https://www.ecoindex.fr/a-propos/' },
@@ -110,6 +112,8 @@ export function useAppState() {
         setEnvVars,
         consoleMessages,
         setConsoleMessages,
+        consoleMessagesSnapshot,
+        setConsoleMessagesSnapshot,
         urlsList,
         setUrlsList,
         jsonDatas,

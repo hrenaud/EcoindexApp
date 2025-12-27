@@ -11,7 +11,7 @@ import {
     TabsList,
     TabsTrigger,
 } from '@/renderer/components/ui/tabs'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { Button } from '@/renderer/components/ui/button'
 import { ConsoleApp } from '@/renderer/components/ConsoleApp'
@@ -25,6 +25,7 @@ import { JsonPanMesure } from '@/renderer/components/JsonPanMesure'
 import { LanguageSwitcher } from '@/renderer/components/LanguageSwitcher'
 import { MySkeleton } from '@/renderer/components/MySkeleton'
 import { PopinLoading } from '@/renderer/components/PopinLoading'
+import { Textarea } from '@/renderer/components/ui/textarea'
 import { SimplePanMesure } from '@/renderer/components/SimplePanMesure'
 import { SplashScreen } from '@/renderer/components/SplashScreen'
 import { TypographyP } from '@/renderer/components/ui/typography/TypographyP'
@@ -59,6 +60,8 @@ function TheApp() {
         showInformationSpinner,
         envVars,
         consoleMessages,
+        consoleMessagesSnapshot,
+        setConsoleMessagesSnapshot,
         urlsList,
         jsonDatas,
         localAdvConfig,
@@ -114,12 +117,47 @@ function TheApp() {
         setJsonDatas,
         setIsJsonFromDisk,
         setIsFirstStart,
+        consoleMessages,
+        setConsoleMessagesSnapshot,
         showHidePopinDuringProcess: (value: string | boolean) =>
             showHidePopinDuringProcess(value, setPopinText, setDisplayPopin),
         showNotification,
         setPopinText,
         setDisplayPopin,
     })
+
+    // Calculer les messages depuis le début de la mesure
+    const measureConsoleMessages = (() => {
+        if (!consoleMessagesSnapshot || !consoleMessagesSnapshot.trim()) {
+            return consoleMessages.trim()
+        }
+
+        if (!consoleMessages || !consoleMessages.trim()) {
+            return ''
+        }
+
+        // Vérifier si consoleMessages commence par le snapshot
+        if (consoleMessages.startsWith(consoleMessagesSnapshot)) {
+            const newMessages = consoleMessages.slice(
+                consoleMessagesSnapshot.length
+            )
+            return newMessages.replace(/^\n+/, '').trim()
+        }
+
+        // Si le snapshot n'est pas au début, chercher son index
+        const snapshotIndex = consoleMessages.indexOf(consoleMessagesSnapshot)
+
+        if (snapshotIndex === -1) {
+            // Le snapshot n'est pas trouvé, prendre tous les messages
+            return consoleMessages.trim()
+        }
+
+        // Prendre seulement ce qui vient après le snapshot
+        const newMessages = consoleMessages.slice(
+            snapshotIndex + consoleMessagesSnapshot.length
+        )
+        return newMessages.replace(/^\n+/, '').trim()
+    })()
 
     // Listeners IPC
     useIpcListeners({
@@ -152,6 +190,17 @@ function TheApp() {
             blockScrolling(visibility)
         })
     }, [blockScrolling])
+
+    // Ref pour le Textarea de la popin (pour auto-scroll)
+    const popinTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+    // Auto-scroll vers le bas quand de nouveaux messages arrivent dans la popin
+    useEffect(() => {
+        if (popinTextareaRef.current && displayPopin) {
+            const textarea = popinTextareaRef.current
+            textarea.scrollTop = textarea.scrollHeight
+        }
+    }, [measureConsoleMessages, displayPopin])
 
     return (
         <>
@@ -326,6 +375,16 @@ function TheApp() {
                 <PopinLoading
                     id="loadingPopin"
                     className="flex !flex-col items-center"
+                    footer={
+                        <div className="mt-4 w-full max-w-2xl">
+                            <Textarea
+                                ref={popinTextareaRef}
+                                className="h-32 w-full font-mono text-xs text-muted-foreground"
+                                readOnly
+                                value={measureConsoleMessages || ''}
+                            />
+                        </div>
+                    }
                 >
                     <TypographyP className="text-center">
                         {popinText}

@@ -17,6 +17,8 @@ interface UseAppHandlersProps {
     setJsonDatas: (data: IJsonMesureData) => void
     setIsJsonFromDisk: (isFromDisk: boolean) => void
     setIsFirstStart: (isFirst: boolean) => void
+    consoleMessages: string
+    setConsoleMessagesSnapshot: (snapshot: string) => void
     showHidePopinDuringProcess: (
         value: string | boolean,
         setPopinText: (text: string) => void,
@@ -39,6 +41,8 @@ export function useAppHandlers({
     setJsonDatas,
     setIsJsonFromDisk,
     setIsFirstStart,
+    consoleMessages,
+    setConsoleMessagesSnapshot,
     showHidePopinDuringProcess,
     showNotification,
     setPopinText,
@@ -60,6 +64,8 @@ export function useAppHandlers({
             )
                 return
         }
+        // Capturer l'état actuel des messages console pour filtrer ensuite
+        setConsoleMessagesSnapshot(consoleMessages)
         await showHidePopinDuringProcess(
             `${t('Url(s) Measure (Simple mode)')} started 🚀`,
             setPopinText,
@@ -137,6 +143,8 @@ export function useAppHandlers({
             )
                 return
         }
+        // Capturer l'état actuel des messages console pour filtrer ensuite
+        setConsoleMessagesSnapshot(consoleMessages)
         await showHidePopinDuringProcess(
             `${t('Courses Measure (Full mode)')} started 🚀`,
             setPopinText,

@@ -47,6 +47,12 @@ export function useIpcListeners({
         | ((_event: any, message: string, ...optionalParams: any[]) => void)
         | null
     >(null)
+    const isListenerAddedRef = useRef<boolean>(false)
+    // Garder une trace du dernier message pour éviter les doublons
+    const lastMessageRef = useRef<{
+        message: string
+        timestamp: number
+    } | null>(null)
     const cleanupLinuxVersionRef = useRef<(() => void) | null>(null)
     const cleanupSendDatasRef = useRef<(() => void) | null>(null)
     const cleanupChangeLanguageRef = useRef<(() => void) | null>(null)
@@ -120,6 +126,7 @@ export function useIpcListeners({
         )
 
         // Handler asynchronous-log
+        // Créer la fonction une seule fois et la stocker dans le ref
         if (!handleConsoleMessageRef.current) {
             handleConsoleMessageRef.current = (
                 _event: any,
@@ -130,6 +137,23 @@ export function useIpcListeners({
                     optionalParams && optionalParams.length > 0
                         ? `${message} ${optionalParams.join(' ')}`
                         : message || ''
+
+                // Déduplication : ignorer les messages identiques reçus dans les 100ms
+                const now = Date.now()
+                const lastMessage = lastMessageRef.current
+                if (
+                    lastMessage &&
+                    lastMessage.message === logMessage &&
+                    now - lastMessage.timestamp < 100
+                ) {
+                    // Message dupliqué, l'ignorer
+                    frontLog.debug('Duplicate message ignored:', logMessage)
+                    return
+                }
+
+                // Mettre à jour la trace du dernier message
+                lastMessageRef.current = { message: logMessage, timestamp: now }
+
                 setConsoleMessages((prev) => {
                     const timestamp = new Date().toLocaleTimeString()
                     return `${prev}${prev ? '\n' : ''}[${timestamp}] ${logMessage}`
@@ -137,15 +161,26 @@ export function useIpcListeners({
             }
         }
 
+        // Nettoyer TOUS les écouteurs existants pour ce channel avant d'en ajouter un nouveau
+        // Cela garantit qu'il n'y a qu'un seul écouteur actif
         if (window.ipcRenderer && handleConsoleMessageRef.current) {
+            // TOUJOURS retirer l'écouteur existant avant d'en ajouter un nouveau
+            // Même si le flag indique qu'il n'a pas été ajouté, il pourrait y avoir un écouteur résiduel
             window.ipcRenderer.off(
                 'asynchronous-log',
                 handleConsoleMessageRef.current
             )
-            window.ipcRenderer.on(
-                'asynchronous-log',
-                handleConsoleMessageRef.current
-            )
+
+            // Ajouter le nouvel écouteur uniquement s'il n'a pas déjà été ajouté
+            // Le flag empêche les ajouts multiples si le useEffect se réexécute
+            if (!isListenerAddedRef.current) {
+                window.ipcRenderer.on(
+                    'asynchronous-log',
+                    handleConsoleMessageRef.current
+                )
+                isListenerAddedRef.current = true
+                frontLog.debug('asynchronous-log listener added')
+            }
         }
 
         // Handler changeLanguageInFront
@@ -258,11 +293,16 @@ export function useIpcListeners({
                 cleanupInitializationRef.current()
                 cleanupInitializationRef.current = null
             }
-            if (window.ipcRenderer && handleConsoleMessageRef.current) {
+            if (
+                window.ipcRenderer &&
+                handleConsoleMessageRef.current &&
+                isListenerAddedRef.current
+            ) {
                 window.ipcRenderer.off(
                     'asynchronous-log',
                     handleConsoleMessageRef.current
                 )
+                isListenerAddedRef.current = false
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps

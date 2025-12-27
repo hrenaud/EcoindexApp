@@ -1,7 +1,7 @@
 import { Bug, ClipboardCopy } from 'lucide-react'
 
 import { Button } from './ui/button'
-import { FC } from 'react'
+import { FC, useEffect, useRef } from 'react'
 import { SimpleTooltip } from './SimpleTooltip'
 import { Textarea } from './ui/textarea'
 import { TypographyH3 } from './ui/typography/TypographyH3'
@@ -31,6 +31,16 @@ export const ConsoleApp: FC<ILayout> = ({
         navigator.clipboard.writeText(JSON.stringify(datasFromHost, null, 2))
     }
     const { t } = useTranslation()
+    const consoleTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+    // Auto-scroll vers le bas quand de nouveaux messages arrivent
+    useEffect(() => {
+        if (consoleTextareaRef.current) {
+            const textarea = consoleTextareaRef.current
+            textarea.scrollTop = textarea.scrollHeight
+        }
+    }, [consoleMessages])
+
     return (
         <details className="w-full rounded-lg border border-primary bg-card p-2 text-card-foreground shadow-sm [&_svg]:open:-rotate-180">
             <summary className="flex cursor-pointer list-none items-center gap-4 rounded-sm">
@@ -59,6 +69,7 @@ export const ConsoleApp: FC<ILayout> = ({
                 {/* A Supprimer */}
                 <TypographyH3>{t('Console')}</TypographyH3>
                 <Textarea
+                    ref={consoleTextareaRef}
                     className="h-36 text-muted-foreground"
                     readOnly
                     value={consoleMessages}
