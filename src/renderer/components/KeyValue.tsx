@@ -38,7 +38,7 @@ export const KeyValue: FC<ILayout> = ({
             const newDataElement: IKeyValue = isKeyInUppercase
                 ? { KEY: 'value' }
                 : { key: 'value' }
-            setDatas({
+            setDatas?.({
                 ...datas,
                 ...newDataElement,
             })
@@ -52,7 +52,7 @@ export const KeyValue: FC<ILayout> = ({
         const newInputFields = { ...datas }
         delete newInputFields[key]
         try {
-            setDatas(newInputFields)
+            setDatas?.(newInputFields)
         } catch (error) {
             frontLog.error(t('Error removing an input field'), error)
         }
@@ -63,9 +63,10 @@ export const KeyValue: FC<ILayout> = ({
         const values: IKeyValue = { ...datas }
         const newValue = event.currentTarget.value
         const key = event.currentTarget.dataset['key']
+        if (!key) return
         values[key] = newValue
         try {
-            setDatas(values)
+            setDatas?.(values)
         } catch (error) {
             frontLog.error(
                 t('Error updating the value of an input field'),
@@ -74,7 +75,7 @@ export const KeyValue: FC<ILayout> = ({
         }
     }
     const handleKeyChange = (
-        index: number,
+        _index: number,
         event: React.ChangeEvent<HTMLInputElement>
     ) => {
         const values: IKeyValue = { ...datas }
@@ -84,12 +85,11 @@ export const KeyValue: FC<ILayout> = ({
         const oldKey = event.currentTarget.dataset['oldKey']
         const order = Object.keys(datas).map((key) => key)
 
-        if (oldKey !== newKey) {
-            Object.defineProperty(
-                values,
-                newKey,
-                Object.getOwnPropertyDescriptor(values, oldKey)
-            )
+        if (oldKey && oldKey !== newKey) {
+            const descriptor = Object.getOwnPropertyDescriptor(values, oldKey)
+            if (descriptor) {
+                Object.defineProperty(values, newKey, descriptor)
+            }
             // delete values[oldKey]
         }
         const tempValues: IKeyValue = {}
@@ -101,7 +101,7 @@ export const KeyValue: FC<ILayout> = ({
             }
         })
         try {
-            setDatas(tempValues)
+            setDatas?.(tempValues)
         } catch (error) {
             frontLog.error(
                 t('Error updating the value of an input field'),

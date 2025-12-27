@@ -19,7 +19,7 @@ import type { MenuItemConstructorOptions } from 'electron'
 
 export const darwinTemplate = (
     app: typeof ElectronApp,
-    mainWindow: BrowserWindow,
+    _mainWindow: BrowserWindow,
     _i18n: typeof i18n
 ): MenuItemConstructorOptions[] => {
     try {
@@ -70,7 +70,7 @@ export const darwinTemplate = (
                     {
                         label: _i18n.t('menu.hideOthers'),
                         accelerator: 'Command+Shift+H',
-                        role: 'hideothers',
+                        role: 'hideOthers',
                     },
                     {
                         label: _i18n.t('menu.showAll'),
@@ -125,9 +125,9 @@ export const darwinTemplate = (
                     {
                         label: _i18n.t('menu.reload'),
                         accelerator: 'Command+R',
-                        click: (_: any, focusedWindow: BrowserWindow) => {
-                            if (focusedWindow) {
-                                focusedWindow.reload()
+                        click: (_: any, focusedWindow) => {
+                            if (focusedWindow && 'reload' in focusedWindow) {
+                                ;(focusedWindow as BrowserWindow).reload()
                             }
                         },
                     },
@@ -138,11 +138,13 @@ export const darwinTemplate = (
                     {
                         label: _i18n.t('menu.fullScreen'),
                         accelerator: 'Ctrl+Command+F',
-                        click: (_: any, focusedWindow: BrowserWindow) => {
-                            if (focusedWindow) {
-                                focusedWindow.setFullScreen(
-                                    !focusedWindow.isFullScreen()
-                                )
+                        click: (_: any, focusedWindow) => {
+                            if (
+                                focusedWindow &&
+                                'setFullScreen' in focusedWindow
+                            ) {
+                                const win = focusedWindow as BrowserWindow
+                                win.setFullScreen(!win.isFullScreen())
                             }
                         },
                     },
@@ -157,9 +159,14 @@ export const darwinTemplate = (
                     {
                         label: _i18n.t('menu.toggleDeveloperTools'),
                         accelerator: 'Alt+Command+I',
-                        click: (_: any, focusedWindow: BrowserWindow) => {
-                            if (focusedWindow) {
-                                focusedWindow.webContents.toggleDevTools()
+                        click: (_: any, focusedWindow) => {
+                            if (
+                                focusedWindow &&
+                                'webContents' in focusedWindow
+                            ) {
+                                ;(
+                                    focusedWindow as BrowserWindow
+                                ).webContents.toggleDevTools()
                             }
                         },
                     },

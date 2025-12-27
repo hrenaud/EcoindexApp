@@ -4,10 +4,16 @@ import type {
     IKeyValue,
     ISimpleUrlInput,
 } from '../../interface'
-import { app, IpcMainEvent, shell, utilityProcess } from 'electron'
+import {
+    app,
+    IpcMainEvent,
+    IpcMainInvokeEvent,
+    shell,
+    utilityProcess,
+} from 'electron'
 import { getWorkDir, isDev } from '../memory'
 
-import type { CliFlags } from 'lighthouse-plugin-ecoindex-courses/dist/types'
+import type { CliFlags } from 'lighthouse-plugin-ecoindex-courses'
 import { _debugLogs } from '../utils/MultiDebugLogs'
 import { _sendMessageToFrontConsole } from '../utils/SendMessageToFrontConsole'
 import { _sendMessageToFrontLog } from '../utils/SendMessageToFrontLog'
@@ -40,9 +46,9 @@ async function _prepareCollect(): Promise<void> {
 }
 
 class CollectDatas_V2 {
-    collectType: `simple` | `complexe`
-    command: CliFlags
-    listAllAudits: false
+    collectType!: `simple` | `complexe`
+    command!: CliFlags
+    listAllAudits!: false
 }
 
 class SimpleCollectDatas_V2 extends CollectDatas_V2 {
@@ -115,9 +121,9 @@ function _prepareDatas(
 
 async function _runDirectCollect(
     command: SimpleCollectDatas_V2 | ComplexeCollectDatas_V2,
-    event: IpcMainEvent,
+    _event: IpcMainEvent | IpcMainInvokeEvent,
     isSimple = false,
-    envVars: IKeyValue = null
+    envVars: IKeyValue | null = null
 ) {
     const mainLog = getMainLog().scope('main/runDirectCollect')
     try {
@@ -333,7 +339,7 @@ async function _runDirectCollect(
  * @returns string
  */
 export const handleSimpleCollect = async (
-    event: IpcMainEvent,
+    event: IpcMainEvent | IpcMainInvokeEvent,
     urlsList: ISimpleUrlInput[],
     localAdvConfig: IAdvancedMesureData,
     envVars: IKeyValue
@@ -428,7 +434,7 @@ export const handleSimpleCollect = async (
  * @returns string
  */
 export const handleJsonSaveAndCollect = async (
-    event: IpcMainEvent,
+    event: IpcMainEvent | IpcMainInvokeEvent,
     jsonDatas: IJsonMesureData,
     andCollect: boolean,
     envVars: IKeyValue

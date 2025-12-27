@@ -22,7 +22,7 @@ try {
         interpolation: {
             escapeValue: false, // not needed for react as it escapes by default
         },
-        missingKeyHandler: (lng, ns, key, fallbackValue) => {
+        missingKeyHandler: (lng, _ns, key, fallbackValue) => {
             frontLog.warn(
                 `Missing translation key: "${key}" for language "${lng}"`
             )

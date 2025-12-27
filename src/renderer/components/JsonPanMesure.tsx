@@ -70,10 +70,11 @@ export const JsonPanMesure: FC<ILayout> = ({
             'is-best-pages': false,
             urls: [{ value: 'https://www.ecoindex.fr/' }],
         }
+        if (!jsonDatas) return
         setJsonDatas?.({
             ...jsonDatas,
             courses: [...jsonDatas.courses, newCourse],
-        })
+        } as IJsonMesureData)
         notify(t('Courses Measure (Full mode)'), t('Course added'))
         setUpdated(true)
     }
@@ -85,10 +86,11 @@ export const JsonPanMesure: FC<ILayout> = ({
      */
     const handlerDeleteCourse = (_: any, key: number) => {
         frontLog.debug('delete course', key)
+        if (!jsonDatas) return
         setJsonDatas?.({
             ...jsonDatas,
             courses: jsonDatas.courses.filter((_, index) => index !== key),
-        })
+        } as IJsonMesureData)
         notify(t('Courses Measure (Full mode)'), `Course ${key + 1} deleted`)
         setUpdated(true)
     }
@@ -103,6 +105,7 @@ export const JsonPanMesure: FC<ILayout> = ({
         urlsList: ISimpleUrlInput[]
     ) => {
         frontLog.debug('handlerOnUpdateSimpleUrlsList', course, urlsList)
+        if (!jsonDatas) return
         setJsonDatas?.({
             ...jsonDatas,
             courses: jsonDatas.courses.map((c, index) => {
@@ -143,43 +146,48 @@ export const JsonPanMesure: FC<ILayout> = ({
             if (_c === -1) {
                 if (name === 'output') {
                     frontLog.debug(`is output`)
+                    if (!jsonDatas) return
                     if (e) {
                         const _jsonDatas = {
                             ...jsonDatas,
                         }
                         _jsonDatas['output'].push(id)
-                        setJsonDatas?.(_jsonDatas)
+                        setJsonDatas?.(_jsonDatas as IJsonMesureData)
                     } else {
                         setJsonDatas?.({
                             ...jsonDatas,
                             output: jsonDatas['output'].filter(
                                 (val) => val !== id
                             ),
-                        })
+                        } as IJsonMesureData)
                     }
                 } else if (name === 'audit-category') {
                     frontLog.debug(`is audit-category`)
+                    if (!jsonDatas) return
                     if (e) {
                         const _jsonDatas = {
                             ...jsonDatas,
                         }
                         _jsonDatas['audit-category'].push(id)
-                        setJsonDatas?.(_jsonDatas)
+                        setJsonDatas?.(_jsonDatas as IJsonMesureData)
                     } else {
+                        if (!jsonDatas) return
                         setJsonDatas?.({
                             ...jsonDatas,
                             'audit-category': jsonDatas[
                                 'audit-category'
                             ].filter((val) => val !== id),
-                        })
+                        } as IJsonMesureData)
                     }
                 } else {
+                    if (!jsonDatas) return
                     setJsonDatas?.({
                         ...jsonDatas,
                         [id]: value,
-                    })
+                    } as IJsonMesureData)
                 }
             } else {
+                if (!jsonDatas) return
                 setJsonDatas?.({
                     ...jsonDatas,
                     courses: jsonDatas.courses.map((course, index) => {
@@ -194,6 +202,7 @@ export const JsonPanMesure: FC<ILayout> = ({
                 })
             }
         }
+        if (!jsonDatas) return
         if (typeof e !== 'boolean') {
             if (e.target.type === 'checkbox' && e.target.name === 'output') {
                 const output = jsonDatas.output
@@ -206,7 +215,7 @@ export const JsonPanMesure: FC<ILayout> = ({
                 setJsonDatas?.({
                     ...jsonDatas,
                     output: output,
-                })
+                } as IJsonMesureData)
             } else {
                 updateGeneric(
                     e.target.type,
@@ -222,7 +231,13 @@ export const JsonPanMesure: FC<ILayout> = ({
             // Gestion générique pour les autres types de champs
             frontLog.debug(`handlerOnChange`, id, name, e, course)
 
-            updateGeneric('checkbox', id, name ? name : id, e, course)
+            updateGeneric(
+                'checkbox',
+                id ?? '',
+                name ?? id ?? '',
+                e as boolean,
+                course
+            )
         }
 
         // frontLog.debug(`jsonDatas`, jsonDatas)
@@ -261,6 +276,7 @@ export const JsonPanMesure: FC<ILayout> = ({
             alert(t('You must set only 1 best-page on courses.'))
             return
         }
+        if (!jsonDatas) return
         if (
             jsonDatas.output.includes(`statement`) &&
             !jsonDatas.output.includes(`json`)
@@ -285,14 +301,15 @@ export const JsonPanMesure: FC<ILayout> = ({
         _event: React.MouseEvent<HTMLButtonElement, MouseEvent>
     ) => {
         // frontLog.debug('handlerOnSave', _event.target)
+        if (!jsonDatas) return
         const auditCategory: string[] = jsonDatas['audit-category']
         if (!auditCategory.includes('lighthouse-plugin-ecoindex-core')) {
             auditCategory.push('lighthouse-plugin-ecoindex-core')
         }
-        setJsonDatas({
+        setJsonDatas?.({
             ...jsonDatas,
             'audit-category': auditCategory,
-        })
+        } as IJsonMesureData)
         save()
         setUpdated(false)
     }
@@ -340,23 +357,39 @@ export const JsonPanMesure: FC<ILayout> = ({
                 </div>
                 <form id="json-form">
                     <AdvConfiguration
-                        configurationDatas={jsonDatas}
-                        setConfigurationDatas={(e: IAdvancedMesureData) => {
+                        configurationDatas={
+                            jsonDatas || { output: [], 'audit-category': [] }
+                        }
+                        setConfigurationDatas={(
+                            e:
+                                | IAdvancedMesureData
+                                | React.SetStateAction<IAdvancedMesureData>
+                        ) => {
+                            const config =
+                                typeof e === 'function'
+                                    ? e(
+                                          jsonDatas || {
+                                              output: [],
+                                              'audit-category': [],
+                                          }
+                                      )
+                                    : e
+                            if (!jsonDatas) return
                             const _jsonDatas = {
                                 ...jsonDatas,
-                                'extra-header': e['extra-header'],
-                                output: e['output'],
-                                'audit-category': e['audit-category'],
+                                'extra-header': config['extra-header'],
+                                output: config['output'],
+                                'audit-category': config['audit-category'],
                             }
-                            if (e['audit-category']) {
+                            if (config['audit-category']) {
                                 _jsonDatas['puppeteer-script'] =
-                                    e['puppeteer-script']
+                                    config['puppeteer-script']
                             } else {
                                 if (_jsonDatas['puppeteer-script']) {
                                     delete _jsonDatas['puppeteer-script']
                                 }
                             }
-                            setJsonDatas(_jsonDatas)
+                            setJsonDatas?.(_jsonDatas as IJsonMesureData)
                         }}
                         setUpdated={(e) => {
                             setUpdated(e)

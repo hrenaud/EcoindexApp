@@ -94,17 +94,17 @@ export function useIpcListeners({
             cleanupSendDatasRef.current()
         }
         cleanupSendDatasRef.current = window.electronAPI.sendDatasToFront(
-            (data: any) => {
+            (data: any): any => {
                 if (typeof data === 'string') {
                     const _data = JSON.parse(data)
                     frontLog.debug(`sendDatasToFront is a string`, _data)
-                    setDatasFromHost((oldObject) => ({
+                    setDatasFromHost((oldObject: any) => ({
                         ...oldObject,
                         ..._data,
                     }))
                 } else {
                     if (data.type && (data.result || data.error)) {
-                        setDatasFromHost((oldObject) => {
+                        setDatasFromHost((oldObject: any) => {
                             const o: any = {
                                 ...oldObject,
                             }
@@ -117,7 +117,7 @@ export function useIpcListeners({
                             `sendDatasToFront is object`,
                             JSON.stringify(data, null, 2)
                         )
-                        setDatasFromHost((oldObject) => ({
+                        setDatasFromHost((oldObject: any) => ({
                             ...oldObject,
                             ...data,
                         }))
@@ -189,7 +189,7 @@ export function useIpcListeners({
             cleanupChangeLanguageRef.current()
         }
         cleanupChangeLanguageRef.current =
-            window.electronAPI.changeLanguageInFront((lng: string) => {
+            window.electronAPI.changeLanguageInFront((lng: string): any => {
                 try {
                     i18nResources.changeLanguage(lng, (err, t) => {
                         if (err)

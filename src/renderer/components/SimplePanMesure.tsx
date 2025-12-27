@@ -6,6 +6,7 @@ import {
     CardHeader,
     CardTitle,
 } from './ui/card'
+import React from 'react'
 
 import { AdvConfiguration } from './AdvConfiguration'
 import { Button } from './ui/button'
@@ -57,16 +58,22 @@ export const SimplePanMesure: FC<ISimpleMesureLayout> = ({
                     <AdvConfiguration
                         statementVisible={false}
                         configurationDatas={localAdvConfig}
-                        setConfigurationDatas={(e: IAdvancedMesureData) => {
+                        setConfigurationDatas={(
+                            e:
+                                | IAdvancedMesureData
+                                | React.SetStateAction<IAdvancedMesureData>
+                        ) => {
+                            const config =
+                                typeof e === 'function' ? e(localAdvConfig) : e
                             const _jsonDatas = {
                                 ...localAdvConfig,
-                                'extra-header': e['extra-header'],
-                                output: e['output'],
-                                'audit-category': e['audit-category'],
+                                'extra-header': config['extra-header'],
+                                output: config['output'],
+                                'audit-category': config['audit-category'],
                             }
-                            if (e['audit-category']) {
+                            if (config['audit-category']) {
                                 _jsonDatas['puppeteer-script'] =
-                                    e['puppeteer-script']
+                                    config['puppeteer-script']
                             } else {
                                 if (_jsonDatas['puppeteer-script']) {
                                     delete _jsonDatas['puppeteer-script']

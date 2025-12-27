@@ -12,7 +12,7 @@ export interface IKeyValue {
 }
 
 export interface IAdvancedMesureData {
-    'extra-header': object | null
+    'extra-header'?: object | null
     output: string[]
     'puppeteer-script'?: string
     'audit-category': string[]
@@ -65,10 +65,10 @@ export interface IInteractionAPI {
 export interface IElectronAPI {
     // i18nextElectronBackend: any
     // Main → Front
-    changeLanguageInFront: (callback) => string
+    changeLanguageInFront: (callback: (lng: string) => void) => () => void
     sendLogToFront: (callback) => string
     sendMessageToFrontLog: (callback) => object
-    sendDatasToFront: (callback) => object
+    sendDatasToFront: (callback: (data: any) => void) => () => void
     handleNewLinuxVersion: (
         callback: (linuxUpdate: LinuxUpdate) => void
     ) => () => void
@@ -97,6 +97,11 @@ export interface IElectronAPI {
     ) => Promise<string>
     handleJsonReadAndReload: () => Promise<IJsonMesureData>
     handleIsJsonConfigFileExist: (workDir: string) => Promise<boolean>
+    showConfirmDialog: (options: {
+        title: string
+        message: string
+        buttons: string[]
+    }) => Promise<boolean>
     hideHelloWindow: () => Promise<void>
     // Méthodes pour la gestion de la langue (ajoutées pour le nouveau projet)
     changeLanguage: (lang: string) => Promise<void>

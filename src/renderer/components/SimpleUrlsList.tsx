@@ -33,7 +33,7 @@ export const SimpleUrlsList: FC<ILayout> = ({
     // Function to add a new input field
     const handleAddFields = () => {
         try {
-            setUrlsList([...urlsList, { value: '' }])
+            setUrlsList?.([...urlsList, { value: '' }])
         } catch (error) {
             frontLog.error(t('Error adding a new input field'), error)
         }
@@ -44,7 +44,7 @@ export const SimpleUrlsList: FC<ILayout> = ({
         const newInputFields = [...urlsList]
         newInputFields.splice(index, 1)
         try {
-            setUrlsList(newInputFields)
+            setUrlsList?.(newInputFields)
         } catch (error) {
             frontLog.error(t('Error removing an input field'), error)
         }
@@ -58,7 +58,7 @@ export const SimpleUrlsList: FC<ILayout> = ({
         const values = [...urlsList]
         values[index].value = event.target.value
         try {
-            setUrlsList(values)
+            setUrlsList?.(values)
         } catch (error) {
             frontLog.error(
                 t('Error updating the value of an input field'),

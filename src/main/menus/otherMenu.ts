@@ -19,7 +19,7 @@ import type { MenuItemConstructorOptions } from 'electron'
 
 export const otherTemplate = (
     app: typeof ElectronApp,
-    mainWindow: BrowserWindow,
+    _mainWindow: BrowserWindow,
     _i18n: typeof i18n
 ): MenuItemConstructorOptions[] => {
     try {
@@ -84,9 +84,9 @@ export const otherTemplate = (
                     {
                         label: _i18n.t('menu.reload'),
                         accelerator: 'Ctrl+R',
-                        click: (_: any, focusedWindow: BrowserWindow) => {
-                            if (focusedWindow) {
-                                focusedWindow.reload()
+                        click: (_: any, focusedWindow) => {
+                            if (focusedWindow && 'reload' in focusedWindow) {
+                                ;(focusedWindow as BrowserWindow).reload()
                             }
                         },
                     },
@@ -97,11 +97,13 @@ export const otherTemplate = (
                     {
                         label: _i18n.t('menu.fullScreen'),
                         accelerator: 'F11',
-                        click: (_: any, focusedWindow: BrowserWindow) => {
-                            if (focusedWindow) {
-                                focusedWindow.setFullScreen(
-                                    !focusedWindow.isFullScreen()
-                                )
+                        click: (_: any, focusedWindow) => {
+                            if (
+                                focusedWindow &&
+                                'setFullScreen' in focusedWindow
+                            ) {
+                                const win = focusedWindow as BrowserWindow
+                                win.setFullScreen(!win.isFullScreen())
                             }
                         },
                     },
@@ -116,9 +118,14 @@ export const otherTemplate = (
                     {
                         label: _i18n.t('menu.toggleDeveloperTools'),
                         accelerator: 'Ctrl+Shift+I',
-                        click: (_: any, focusedWindow: BrowserWindow) => {
-                            if (focusedWindow) {
-                                focusedWindow.webContents.toggleDevTools()
+                        click: (_: any, focusedWindow) => {
+                            if (
+                                focusedWindow &&
+                                'webContents' in focusedWindow
+                            ) {
+                                ;(
+                                    focusedWindow as BrowserWindow
+                                ).webContents.toggleDevTools()
                             }
                         },
                     },

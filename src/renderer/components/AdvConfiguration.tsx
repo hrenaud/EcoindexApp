@@ -70,7 +70,7 @@ export const AdvConfiguration: FC<ILayout> = ({
             ...configurationDatas,
             output: output,
         }
-        setConfigurationDatas(_configurationDatas)
+        setConfigurationDatas?.(_configurationDatas)
         setEnableStatement(!e)
         setUpdated && setUpdated(true)
     }
@@ -88,8 +88,8 @@ export const AdvConfiguration: FC<ILayout> = ({
                 ...configurationDatas,
                 'puppeteer-script': filePath,
             }
-            setConfigurationDatas(_configurationDatas)
-            setUpdated && setUpdated(true)
+            setConfigurationDatas?.(_configurationDatas)
+            setUpdated?.(true)
         }
     }
 
@@ -102,8 +102,8 @@ export const AdvConfiguration: FC<ILayout> = ({
             ...configurationDatas,
         }
         delete _configurationDatas?.['puppeteer-script']
-        setConfigurationDatas(_configurationDatas)
-        setUpdated && setUpdated(true)
+        setConfigurationDatas?.(_configurationDatas)
+        setUpdated?.(true)
     }
 
     /**
@@ -196,7 +196,7 @@ export const AdvConfiguration: FC<ILayout> = ({
             // Gestion générique pour les autres types de champs
             frontLog.debug(`handlerOnChange`, id, name, e, course)
 
-            updateGeneric('checkbox', id, name ? name : id, e, course)
+            updateGeneric('checkbox', id ?? '', name ?? id ?? '', e, course)
         }
 
         // frontLog.debug(`configurationDatas`, configurationDatas)
@@ -219,12 +219,22 @@ export const AdvConfiguration: FC<ILayout> = ({
                         visible={true}
                         isFullWidth={true}
                         title={t('Extra header')}
-                        setDatas={(e: IKeyValue) => {
-                            setConfigurationDatas({
+                        setDatas={(
+                            e: IKeyValue | React.SetStateAction<IKeyValue>
+                        ) => {
+                            const newData =
+                                typeof e === 'function'
+                                    ? e(
+                                          (configurationDatas?.[
+                                              'extra-header'
+                                          ] as IKeyValue) || {}
+                                      )
+                                    : e
+                            setConfigurationDatas?.({
                                 ...configurationDatas,
-                                'extra-header': e,
+                                'extra-header': newData,
                             })
-                            setUpdated && setUpdated(true)
+                            setUpdated?.(true)
                         }}
                     />
                 </div>
@@ -437,8 +447,10 @@ export const AdvConfiguration: FC<ILayout> = ({
                         isFullWidth={true}
                         isKeyInUppercase={true}
                         title={t('advConfiguration.envvar.title')}
-                        setDatas={(e: IKeyValue) => {
-                            setEnvVars(e)
+                        setDatas={(
+                            e: IKeyValue | React.SetStateAction<IKeyValue>
+                        ) => {
+                            setEnvVars(typeof e === 'function' ? e(envVars) : e)
                         }}
                     />
                 </div>

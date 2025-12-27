@@ -1,6 +1,6 @@
 import { getHomeDir, isDev } from '../memory'
 
-import { IpcMainEvent } from 'electron'
+import { IpcMainEvent, IpcMainInvokeEvent } from 'electron'
 import Store from 'electron-store'
 import fs from 'node:fs'
 import { getMainLog } from '../main'
@@ -18,7 +18,7 @@ const store = new Store()
  * @returns boolean
  */
 export const handleIsJsonConfigFileExist = async (
-    event: IpcMainEvent,
+    _event: IpcMainEvent | IpcMainInvokeEvent,
     workDir: string
 ) => {
     const mainLog = getMainLog().scope('main/handleIsJsonConfigFileExist')

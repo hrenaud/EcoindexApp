@@ -1,6 +1,6 @@
 import { getWorkDir, isDev } from '../memory'
 
-import { IpcMainEvent } from 'electron'
+import { IpcMainEvent, IpcMainInvokeEvent } from 'electron'
 import { _debugLogs } from '../utils/MultiDebugLogs'
 import { _sendMessageToFrontLog } from '../utils/SendMessageToFrontLog'
 import { convertJSONDatasFromString } from '../utils/ConvertJSONDatas'
@@ -17,7 +17,7 @@ import type { IJsonMesureData } from '../../interface'
  * @returns Promise<IJsonMesureData>
  */
 export const handleJsonReadAndReload = async (
-    _event: IpcMainEvent
+    _event: IpcMainEvent | IpcMainInvokeEvent
 ): Promise<IJsonMesureData> => {
     const mainLog = getMainLog().scope('main/handleJsonReadAndReload')
     // showNotification({
@@ -58,6 +58,6 @@ export const handleJsonReadAndReload = async (
                 error,
             }),
         })
-        // throw new Error(`Json file not read and reloaded. ${error}`)
+        throw new Error(`Json file not read and reloaded. ${error}`)
     }
 }
