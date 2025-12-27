@@ -2,7 +2,7 @@
 "ecoindex-app": minor
 ---
 
-## Résumé des modifications depuis décembre 2024
+## Résumé des modifications depuis décembre 2025
 
 ### Nouvelles fonctionnalités
 
