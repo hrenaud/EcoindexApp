@@ -16,11 +16,17 @@ try {
     // Initialiser avec la langue par défaut
     // La langue sauvegardée sera chargée dans le composant LanguageSwitcher
     i18n.init({
-        debug: false,
+        debug: false, // Désactiver en production
         lng: 'en',
         fallbackLng: 'en',
         interpolation: {
             escapeValue: false, // not needed for react as it escapes by default
+        },
+        missingKeyHandler: (lng, ns, key, fallbackValue) => {
+            frontLog.warn(
+                `Missing translation key: "${key}" for language "${lng}"`
+            )
+            return fallbackValue || key
         },
     })
 
