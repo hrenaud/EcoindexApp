@@ -37,7 +37,7 @@ export const otherTemplate = (
                         // Notifier toutes les fenêtres avec les deux événements nécessaires
                         BrowserWindow.getAllWindows().forEach((window) => {
                             window.webContents.send(
-                                'language-changed',
+                                channels.LANGUAGE_CHANGED,
                                 languageCode.code
                             )
                             window.webContents.send(

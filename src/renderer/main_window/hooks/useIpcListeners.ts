@@ -5,6 +5,7 @@ import { InitalizationMessage } from '@/types'
 import { InitalizationData } from '@/class/InitalizationData'
 import i18nResources from '@/configs/i18nResources'
 import log from 'electron-log/renderer'
+import { channels } from '@/shared/constants'
 
 const frontLog = log.scope('front/App/useIpcListeners')
 
@@ -167,7 +168,7 @@ export function useIpcListeners({
             // TOUJOURS retirer l'écouteur existant avant d'en ajouter un nouveau
             // Même si le flag indique qu'il n'a pas été ajouté, il pourrait y avoir un écouteur résiduel
             window.ipcRenderer.off(
-                'asynchronous-log',
+                channels.ASYNCHRONOUS_LOG,
                 handleConsoleMessageRef.current
             )
 
@@ -175,7 +176,7 @@ export function useIpcListeners({
             // Le flag empêche les ajouts multiples si le useEffect se réexécute
             if (!isListenerAddedRef.current) {
                 window.ipcRenderer.on(
-                    'asynchronous-log',
+                    channels.ASYNCHRONOUS_LOG,
                     handleConsoleMessageRef.current
                 )
                 isListenerAddedRef.current = true
@@ -299,7 +300,7 @@ export function useIpcListeners({
                 isListenerAddedRef.current
             ) {
                 window.ipcRenderer.off(
-                    'asynchronous-log',
+                    channels.ASYNCHRONOUS_LOG,
                     handleConsoleMessageRef.current
                 )
                 isListenerAddedRef.current = false

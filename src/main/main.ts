@@ -129,7 +129,7 @@ function changeLanguage(lang: string) {
     i18n.changeLanguage(lang)
     // Notifier toutes les fenêtres
     BrowserWindow.getAllWindows().forEach((window) => {
-        window.webContents.send('language-changed', lang)
+        window.webContents.send(channels.LANGUAGE_CHANGED, lang)
         window.webContents.send(channels.CHANGE_LANGUAGE_TO_FRONT, lang)
     })
     // Reconstruire le menu avec la nouvelle langue sélectionnée
@@ -139,30 +139,33 @@ function changeLanguage(lang: string) {
 }
 
 // Handlers IPC pour la communication avec le renderer
-ipcMain.handle('change-language', (_event, lang: string) => {
+ipcMain.handle(channels.CHANGE_LANGUAGE, (_event, lang: string) => {
     changeLanguage(lang)
 })
 
-ipcMain.handle('get-language', () => {
+ipcMain.handle(channels.GET_LANGUAGE, () => {
     return store.get('language') || 'en'
 })
 
 // Handlers IPC pour l'API store générique (comme dans l'ancienne application)
-ipcMain.handle('store-set', (_event, key: string, value: unknown) => {
+ipcMain.handle(channels.STORE_SET, (_event, key: string, value: unknown) => {
     store.set(key, value)
 })
 
-ipcMain.handle('store-get', (_event, key: string, defaultValue?: unknown) => {
-    return store.get(key, defaultValue)
-})
+ipcMain.handle(
+    channels.STORE_GET,
+    (_event, key: string, defaultValue?: unknown) => {
+        return store.get(key, defaultValue)
+    }
+)
 
-ipcMain.handle('store-delete', (_event, key: string) => {
+ipcMain.handle(channels.STORE_DELETE, (_event, key: string) => {
     store.delete(key as any)
 })
 
 // Handler IPC pour l'initialisation (pour compatibilité avec l'ancien code)
 ipcMain.handle(
-    'initialization-app',
+    channels.INITIALIZATION_APP,
     async (_event, forceInitialisation = false) => {
         return await initialization(_event, forceInitialisation)
     }
@@ -244,7 +247,7 @@ async function createWindow() {
         const mainLog = getMainLog()
         mainLog.info('Window did-finish-load event fired')
         win?.webContents.send(
-            'main-process-message',
+            channels.MAIN_PROCESS_MESSAGE,
             new Date().toLocaleString()
         )
 

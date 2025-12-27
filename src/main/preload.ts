@@ -5,6 +5,7 @@ import type {
     IKeyValue,
     IJsonMesureData,
 } from '../interface'
+import { channels } from '../shared/constants'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
@@ -32,30 +33,31 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
 // --------- Expose language API and Linux update API ---------
 contextBridge.exposeInMainWorld('electronAPI', {
     changeLanguage: (lang: string) =>
-        ipcRenderer.invoke('change-language', lang),
-    getLanguage: () => ipcRenderer.invoke('get-language'),
+        ipcRenderer.invoke(channels.CHANGE_LANGUAGE, lang),
+    getLanguage: () => ipcRenderer.invoke(channels.GET_LANGUAGE),
     onLanguageChanged: (callback: (lang: string) => void) => {
-        ipcRenderer.on('language-changed', (_event, lang: string) =>
+        ipcRenderer.on(channels.LANGUAGE_CHANGED, (_event, lang: string) =>
             callback(lang)
         )
         return () => {
-            ipcRenderer.removeAllListeners('language-changed')
+            ipcRenderer.removeAllListeners(channels.LANGUAGE_CHANGED)
         }
     },
     handleNewLinuxVersion: (callback: (linuxUpdate: any) => void) => {
-        ipcRenderer.on('alert-linux-update', (_event, linuxUpdate) =>
+        ipcRenderer.on(channels.ALERT_LINUX_UPDATE, (_event, linuxUpdate) =>
             callback(linuxUpdate)
         )
         return () => {
-            ipcRenderer.removeAllListeners('alert-linux-update')
+            ipcRenderer.removeAllListeners(channels.ALERT_LINUX_UPDATE)
         }
     },
     displaySplashScreen: (callback: (visibility: boolean) => void) => {
-        ipcRenderer.on('display-splash-screen', (_event, visibility: boolean) =>
-            callback(visibility)
+        ipcRenderer.on(
+            channels.DISPLAY_SPLASH_SCREEN,
+            (_event, visibility: boolean) => callback(visibility)
         )
         return () => {
-            ipcRenderer.removeAllListeners('display-splash-screen')
+            ipcRenderer.removeAllListeners(channels.DISPLAY_SPLASH_SCREEN)
         }
     },
     // Front → Main: Handlers pour les mesures
@@ -64,33 +66,46 @@ contextBridge.exposeInMainWorld('electronAPI', {
         localAdvConfig: IAdvancedMesureData,
         envVars: IKeyValue
     ) =>
-        ipcRenderer.invoke('simple-mesures', urlsList, localAdvConfig, envVars),
+        ipcRenderer.invoke(
+            channels.SIMPLE_MESURES,
+            urlsList,
+            localAdvConfig,
+            envVars
+        ),
     handleJsonSaveAndCollect: (
         jsonDatas: IJsonMesureData,
         andCollect: boolean,
         envVars: IKeyValue
-    ) => ipcRenderer.invoke('save-json-file', jsonDatas, andCollect, envVars),
-    handleJsonReadAndReload: () => ipcRenderer.invoke('read-reload-json-file'),
-    handleSelectFolder: () => ipcRenderer.invoke('dialog:select-folder'),
+    ) =>
+        ipcRenderer.invoke(
+            channels.SAVE_JSON_FILE,
+            jsonDatas,
+            andCollect,
+            envVars
+        ),
+    handleJsonReadAndReload: () =>
+        ipcRenderer.invoke(channels.READ_RELOAD_JSON_FILE),
+    handleSelectFolder: () => ipcRenderer.invoke(channels.SELECT_FOLDER),
     handleSelectPuppeteerFilePath: () =>
-        ipcRenderer.invoke('dialog:select-puppeteer-file'),
+        ipcRenderer.invoke(channels.SELECT_PUPPETEER_FILE),
     handleIsJsonConfigFileExist: (workDir: string) =>
-        ipcRenderer.invoke('is-json-config-file-exist', workDir),
+        ipcRenderer.invoke(channels.IS_JSON_CONFIG_FILE_EXIST, workDir),
     // Main → Front: Écouter les données depuis le main
     sendDatasToFront: (callback: (data: any) => void) => {
-        ipcRenderer.on('host-informations-back', (_event, data) =>
+        ipcRenderer.on(channels.HOST_INFORMATIONS_BACK, (_event, data) =>
             callback(data)
         )
         return () => {
-            ipcRenderer.removeAllListeners('host-informations-back')
+            ipcRenderer.removeAllListeners(channels.HOST_INFORMATIONS_BACK)
         }
     },
     changeLanguageInFront: (callback: (lng: string) => void) => {
-        ipcRenderer.on('change-language-to-front', (_event, lng: string) =>
-            callback(lng)
+        ipcRenderer.on(
+            channels.CHANGE_LANGUAGE_TO_FRONT,
+            (_event, lng: string) => callback(lng)
         )
         return () => {
-            ipcRenderer.removeAllListeners('change-language-to-front')
+            ipcRenderer.removeAllListeners(channels.CHANGE_LANGUAGE_TO_FRONT)
         }
     },
 })
@@ -98,10 +113,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 // --------- Expose store API (comme dans l'ancienne application) ---------
 contextBridge.exposeInMainWorld('store', {
     set: (key: string, value: unknown) =>
-        ipcRenderer.invoke('store-set', key, value),
+        ipcRenderer.invoke(channels.STORE_SET, key, value),
     get: (key: string, defaultValue?: unknown) =>
-        ipcRenderer.invoke('store-get', key, defaultValue),
-    delete: (key: string) => ipcRenderer.invoke('store-delete', key),
+        ipcRenderer.invoke(channels.STORE_GET, key, defaultValue),
+    delete: (key: string) => ipcRenderer.invoke(channels.STORE_DELETE, key),
 })
 
 // --------- Expose versions API ---------
@@ -115,14 +130,14 @@ contextBridge.exposeInMainWorld('versions', {
 contextBridge.exposeInMainWorld('initialisationAPI', {
     // Front → Main: Lancer l'initialisation (pour compatibilité, mais maintenant lancée automatiquement)
     initializeApplication: (forceInitialisation: boolean) =>
-        ipcRenderer.invoke('initialization-app', forceInitialisation),
+        ipcRenderer.invoke(channels.INITIALIZATION_APP, forceInitialisation),
     // Main → Front: Écouter les messages d'initialisation
     sendInitializationMessages: (callback: (message: any) => void) => {
-        ipcRenderer.on('initialization-messages', (_event, message) =>
+        ipcRenderer.on(channels.INITIALIZATION_MESSAGES, (_event, message) =>
             callback(message)
         )
         return () => {
-            ipcRenderer.removeAllListeners('initialization-messages')
+            ipcRenderer.removeAllListeners(channels.INITIALIZATION_MESSAGES)
         }
     },
     // Main → Front: Écouter les données de configuration
@@ -131,12 +146,12 @@ contextBridge.exposeInMainWorld('initialisationAPI', {
         const handler1 = (_event: any, data: any) => callback(data)
         const handler2 = (_event: any, data: any) => callback(data)
 
-        ipcRenderer.on('initialization-datas', handler1)
-        ipcRenderer.on('host-informations-back', handler2)
+        ipcRenderer.on(channels.INITIALIZATION_DATAS, handler1)
+        ipcRenderer.on(channels.HOST_INFORMATIONS_BACK, handler2)
 
         return () => {
-            ipcRenderer.removeAllListeners('initialization-datas')
-            ipcRenderer.removeAllListeners('host-informations-back')
+            ipcRenderer.removeAllListeners(channels.INITIALIZATION_DATAS)
+            ipcRenderer.removeAllListeners(channels.HOST_INFORMATIONS_BACK)
         }
     },
 })
