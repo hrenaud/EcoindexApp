@@ -356,7 +356,6 @@ jobs:
                   path: |
                       out/**/*.deb
                       out/**/*.dmg
-                      out/**/*Setup.exe
                       out/**/*setup.exe
                       out/**/*.rpm
                       out/**/*.zip
@@ -397,11 +396,11 @@ jobs:
                       Release.txt
                       artifacts/**/*.deb
                       artifacts/**/*.dmg
-                      artifacts/**/*Setup.exe
                       artifacts/**/*setup.exe
                       artifacts/**/*.rpm
                       artifacts/**/*.zip
                   generate_release_notes: true
+                  fail_on_unmatched_files: false
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
