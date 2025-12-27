@@ -27,8 +27,6 @@ export function useAppState() {
         puppeteerBrowserInstalledVersion,
         setPuppeteerBrowserInstalledVersion,
     ] = useState('loading...')
-    const [displayReloadButton, setDisplayReloadButton] = useState(false)
-
     // États pour la popin d'information
     const [displayInformationPopin, setDisplayInformationPopin] =
         useState(false)
@@ -94,8 +92,6 @@ export function useAppState() {
         setIsPuppeteerBrowserInstalled,
         puppeteerBrowserInstalledVersion,
         setPuppeteerBrowserInstalledVersion,
-        displayReloadButton,
-        setDisplayReloadButton,
         // États popin d'information
         displayInformationPopin,
         setDisplayInformationPopin,

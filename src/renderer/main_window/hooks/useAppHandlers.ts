@@ -14,7 +14,6 @@ interface UseAppHandlersProps {
     jsonDatas: IJsonMesureData
     t: (key: string, options?: any) => string
     setWorkDir: (dir: string) => void
-    setDisplayReloadButton: (display: boolean) => void
     setJsonDatas: (data: IJsonMesureData) => void
     setIsJsonFromDisk: (isFromDisk: boolean) => void
     setIsFirstStart: (isFirst: boolean) => void
@@ -37,7 +36,6 @@ export function useAppHandlers({
     jsonDatas,
     t,
     setWorkDir,
-    setDisplayReloadButton,
     setJsonDatas,
     setIsJsonFromDisk,
     setIsFirstStart,
@@ -62,7 +60,6 @@ export function useAppHandlers({
             )
                 return
         }
-        setDisplayReloadButton(false)
         await showHidePopinDuringProcess(
             `${t('Url(s) Measure (Simple mode)')} started 🚀`,
             setPopinText,
@@ -140,7 +137,6 @@ export function useAppHandlers({
             )
                 return
         }
-        setDisplayReloadButton(false)
         await showHidePopinDuringProcess(
             `${t('Courses Measure (Full mode)')} started 🚀`,
             setPopinText,
@@ -195,13 +191,6 @@ export function useAppHandlers({
     }
 
     /**
-     * Handlers, force window refresh
-     */
-    const forceRefresh = () => {
-        window.location.reload()
-    }
-
-    /**
      * Launch Initialization.
      * @param forceInitialisation
      */
@@ -227,7 +216,6 @@ export function useAppHandlers({
         runJsonSaveAndCollect,
         handlerJsonNotify,
         selectWorkingFolder,
-        forceRefresh,
         launchInitialization,
     }
 }

@@ -51,7 +51,6 @@ function TheApp() {
         isFirstStart,
         isPuppeteerBrowserInstalled,
         puppeteerBrowserInstalledVersion,
-        displayReloadButton,
         displayInformationPopin,
         informationPopinTitle,
         informationPopinErrorLink,
@@ -67,7 +66,6 @@ function TheApp() {
         setJsonDatas,
         setEnvVars,
         setLocalAdvConfig,
-        setDisplayReloadButton,
         setPopinText,
         setDisplayPopin,
         setIsJsonFromDisk,
@@ -103,7 +101,6 @@ function TheApp() {
         runJsonSaveAndCollect,
         handlerJsonNotify,
         selectWorkingFolder,
-        forceRefresh,
         launchInitialization,
     } = useAppHandlers({
         workDir,
@@ -114,7 +111,6 @@ function TheApp() {
         jsonDatas,
         t,
         setWorkDir,
-        setDisplayReloadButton,
         setJsonDatas,
         setIsJsonFromDisk,
         setIsFirstStart,
@@ -330,19 +326,6 @@ function TheApp() {
                 <PopinLoading
                     id="loadingPopin"
                     className="flex !flex-col items-center"
-                    footer={
-                        displayReloadButton && (
-                            <Button
-                                id="bt-reload"
-                                variant="destructive"
-                                size="sm"
-                                onClick={forceRefresh}
-                                className="max-w-fit"
-                            >
-                                {t('Reload if too long')}
-                            </Button>
-                        )
-                    }
                 >
                     <TypographyP className="text-center">
                         {popinText}
