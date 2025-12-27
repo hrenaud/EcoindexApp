@@ -380,6 +380,12 @@ const cleanupSendDatasRef = useRef<(() => void) | null>(null)
 const cleanupChangeLanguageRef = useRef<(() => void) | null>(null)
 const cleanupInitializationRef = useRef<(() => void) | null>(null)
 
+// Ref pour stocker la fonction de traduction la plus récente
+const tRef = useRef(t)
+useEffect(() => {
+    tRef.current = t
+}, [t])
+
 useEffect(() => {
     // Nettoyer le listener précédent s'il existe
     if (cleanupLinuxVersionRef.current) {
@@ -388,6 +394,10 @@ useEffect(() => {
     // Stocker la nouvelle fonction de cleanup
     cleanupLinuxVersionRef.current = window.electronAPI.handleNewLinuxVersion(
         (linuxUpdate: LinuxUpdate) => {
+            // Utiliser tRef.current au lieu de t pour les traductions
+            const resp = window.confirm(
+                tRef.current('A new version...', { version: ... })
+            )
             // ... logique du handler
         }
     )
@@ -402,7 +412,7 @@ useEffect(() => {
         }
         // Répéter pour tous les autres listeners...
     }
-}, [t])
+}, []) // Tableau de dépendances vide : les listeners ne doivent être ajoutés qu'une seule fois
 ```
 
 **Avantages** :
