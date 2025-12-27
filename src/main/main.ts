@@ -1,22 +1,37 @@
-import { createRequire } from 'node:module'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { BrowserWindow, app, ipcMain, dialog } from 'electron'
+import i18n, { initializeI18n } from '../configs/i18next.config'
 
-import {
-    BrowserWindow,
-    Menu,
-    MenuItemConstructorOptions,
-    app,
-    ipcMain,
-} from 'electron'
-import log from 'electron-log'
+import { LinuxUpdate } from '../class/LinuxUpdate'
 import Store from 'electron-store'
+import Updater from './Updater'
+import { buildMenu } from './menus/menuFactory'
+import { channels } from '../shared/constants'
+import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
+import { initialization } from './handlers/Initalization'
+import log from 'electron-log'
+import path from 'node:path'
+import pkg from '../../package.json'
+import { setMainWindow } from './memory'
+import {
+    handleSimpleCollect,
+    handleJsonSaveAndCollect,
+} from './handlers/HandleCollectAll'
+import { handleSelectFolder } from './handlers/HandleSelectFolder'
+import { handleSelectPuppeteerFilePath } from './handlers/HandleSelectPuppeteerFilePath'
+import { handleIsJsonConfigFileExist } from './handlers/HandleIsJsonConfigFileExist'
+import { handleJsonReadAndReload } from './handlers/HandleJsonReadAndReload'
 
 // Configuration de electron-log
 log.initialize()
-log.transports.file.level = 'info'
-log.transports.console.level =
-    process.env.NODE_ENV === 'development' ? 'debug' : 'info'
+log.transports.file.level = 'debug' // Toujours en debug pour les fichiers
+log.transports.console.level = 'debug' // Toujours en debug pour la console
+log.transports.file.maxSize = 5 * 1024 * 1024 // 5MB
+log.log('electron-log initialized, file:', log.transports.file.getFile().path)
+
+export const getMainLog = () => {
+    return log
+}
 
 const require = createRequire(import.meta.url)
 
@@ -53,6 +68,17 @@ const getAppRoot = () => {
 // Initialiser APP_ROOT après que app soit disponible
 const APP_ROOT = getAppRoot()
 process.env.APP_ROOT = APP_ROOT
+
+// Fonction pour obtenir le chemin des ressources (extraResources)
+// En développement : utilise APP_ROOT/src/extraResources
+// En production : utilise process.resourcesPath
+export const getResourcesPath = () => {
+    if (app.isPackaged && process.resourcesPath) {
+        return process.resourcesPath
+    }
+    // En développement, utiliser le chemin du projet
+    return path.join(APP_ROOT, 'src', 'extraResources')
+}
 
 // Get VITE_DEV_SERVER_URL from environment, with fallback
 const VITE_DEV_SERVER_URL =
@@ -95,122 +121,132 @@ const store = new Store({
     },
 })
 
-// Fonction pour créer le menu avec le sélecteur de langue
-function createMenu() {
-    const currentLang = (store.get('language') as string) || 'en'
-
-    const template: MenuItemConstructorOptions[] = [
-        {
-            label: process.platform === 'darwin' ? app.getName() : 'File',
-            submenu: [
-                {
-                    role: 'quit',
-                },
-            ],
-        },
-        {
-            label: 'View',
-            submenu: [
-                {
-                    label: 'Language',
-                    submenu: [
-                        {
-                            label: 'Français',
-                            type: 'radio',
-                            checked: currentLang === 'fr',
-                            click: () => changeLanguage('fr'),
-                        },
-                        {
-                            label: 'English',
-                            type: 'radio',
-                            checked: currentLang === 'en',
-                            click: () => changeLanguage('en'),
-                        },
-                    ],
-                },
-                { type: 'separator' },
-                {
-                    role: 'reload',
-                },
-                {
-                    role: 'forceReload',
-                },
-                {
-                    role: 'toggleDevTools',
-                },
-                { type: 'separator' },
-                {
-                    role: 'resetZoom',
-                },
-                {
-                    role: 'zoomIn',
-                },
-                {
-                    role: 'zoomOut',
-                },
-                { type: 'separator' },
-                {
-                    role: 'togglefullscreen',
-                },
-            ],
-        },
-    ]
-
-    // Sur macOS, ajouter le menu standard
-    if (process.platform === 'darwin') {
-        template.unshift({
-            label: app.getName(),
-            submenu: [
-                { role: 'about' },
-                { type: 'separator' },
-                { role: 'services' },
-                { type: 'separator' },
-                { role: 'hide' },
-                { role: 'hideOthers' },
-                { role: 'unhide' },
-                { type: 'separator' },
-                { role: 'quit' },
-            ],
-        })
-    }
-
-    const menu = Menu.buildFromTemplate(template)
-    Menu.setApplicationMenu(menu)
-}
-
 // Fonction pour changer la langue
 function changeLanguage(lang: string) {
-    // Sauvegarder la langue dans le store (comme dans l'ancienne application)
+    // Sauvegarder la langue dans le store
     store.set('language', lang)
+    // Changer la langue dans i18next
+    i18n.changeLanguage(lang)
     // Notifier toutes les fenêtres
     BrowserWindow.getAllWindows().forEach((window) => {
-        window.webContents.send('language-changed', lang)
+        window.webContents.send(channels.LANGUAGE_CHANGED, lang)
+        window.webContents.send(channels.CHANGE_LANGUAGE_TO_FRONT, lang)
     })
     // Reconstruire le menu avec la nouvelle langue sélectionnée
-    createMenu()
+    if (win) {
+        buildMenu(app, win, i18n)
+    }
 }
 
 // Handlers IPC pour la communication avec le renderer
-ipcMain.handle('change-language', (_event, lang: string) => {
+ipcMain.handle(channels.CHANGE_LANGUAGE, (_event, lang: string) => {
     changeLanguage(lang)
 })
 
-ipcMain.handle('get-language', () => {
+ipcMain.handle(channels.GET_LANGUAGE, () => {
     return store.get('language') || 'en'
 })
 
 // Handlers IPC pour l'API store générique (comme dans l'ancienne application)
-ipcMain.handle('store-set', (_event, key: string, value: unknown) => {
+ipcMain.handle(channels.STORE_SET, (_event, key: string, value: unknown) => {
     store.set(key, value)
 })
 
-ipcMain.handle('store-get', (_event, key: string, defaultValue?: unknown) => {
-    return store.get(key, defaultValue)
-})
+ipcMain.handle(
+    channels.STORE_GET,
+    (_event, key: string, defaultValue?: unknown) => {
+        return store.get(key, defaultValue)
+    }
+)
 
-ipcMain.handle('store-delete', (_event, key: string) => {
+ipcMain.handle(channels.STORE_DELETE, (_event, key: string) => {
     store.delete(key as any)
 })
+
+// Handler IPC pour l'initialisation (pour compatibilité avec l'ancien code)
+ipcMain.handle(
+    channels.INITIALIZATION_APP,
+    async (_event, forceInitialisation = false) => {
+        return await initialization(_event, forceInitialisation)
+    }
+)
+
+// Handlers IPC pour les mesures
+ipcMain.handle(
+    channels.SIMPLE_MESURES,
+    async (event, urlsList, localAdvConfig, envVars) => {
+        return await handleSimpleCollect(
+            event,
+            urlsList,
+            localAdvConfig,
+            envVars
+        )
+    }
+)
+
+ipcMain.handle(
+    channels.SAVE_JSON_FILE,
+    async (event, jsonDatas, andCollect, envVars) => {
+        return await handleJsonSaveAndCollect(
+            event,
+            jsonDatas,
+            andCollect,
+            envVars
+        )
+    }
+)
+
+ipcMain.handle(channels.READ_RELOAD_JSON_FILE, async (event) => {
+    return await handleJsonReadAndReload(event)
+})
+
+ipcMain.handle(channels.SELECT_FOLDER, async (event) => {
+    return await handleSelectFolder(event)
+})
+
+ipcMain.handle(channels.SELECT_PUPPETEER_FILE, async (event) => {
+    return await handleSelectPuppeteerFilePath(event)
+})
+
+ipcMain.handle(channels.IS_JSON_CONFIG_FILE_EXIST, async (event, workDir) => {
+    return await handleIsJsonConfigFileExist(event, workDir)
+})
+
+// Handler IPC pour afficher une boîte de dialogue de confirmation
+ipcMain.handle(
+    channels.SHOW_CONFIRM_DIALOG,
+    async (
+        _event,
+        options: { title: string; message: string; buttons: string[] }
+    ) => {
+        const mainLog = getMainLog().scope('main/showConfirmDialog')
+        try {
+            // Utiliser la fenêtre principale ou la première fenêtre disponible
+            const window =
+                win ||
+                BrowserWindow.getFocusedWindow() ||
+                BrowserWindow.getAllWindows()[0]
+            if (!window) {
+                mainLog.error('No window available for showConfirmDialog')
+                return false
+            }
+            const response = await dialog.showMessageBox(window, {
+                type: 'question',
+                title: options.title,
+                message: options.title,
+                detail: options.message,
+                buttons: options.buttons,
+                defaultId: 1, // Par défaut, le deuxième bouton (Continuer)
+                cancelId: 0, // Le premier bouton (Annuler) annule la boîte de dialogue
+            })
+            // Retourne true si l'utilisateur a cliqué sur "Continuer" (index 1), false sinon
+            return response.response === 1
+        } catch (error) {
+            mainLog.error('Error in showConfirmDialog', error)
+            return false
+        }
+    }
+)
 
 async function createWindow() {
     win = new BrowserWindow({
@@ -227,40 +263,146 @@ async function createWindow() {
             contextIsolation: true,
         },
     })
+    setMainWindow(win)
 
     // In development, always try to load from Vite dev server first
     if (VITE_DEV_SERVER_URL) {
-        console.log('Loading from Vite dev server:', VITE_DEV_SERVER_URL)
+        log.debug('Loading from Vite dev server:', VITE_DEV_SERVER_URL)
         win.loadURL(VITE_DEV_SERVER_URL)
         // Open devTool if the app is not packaged
         win.webContents.openDevTools()
     } else {
-        console.log('Loading from file:', RENDERER_HTML)
-        console.log('App path:', app.getAppPath())
-        console.log('Is packaged:', app.isPackaged)
+        log.debug('Loading from file:', RENDERER_HTML)
+        log.debug('App path:', app.getAppPath())
+        log.debug('Is packaged:', app.isPackaged)
         win.loadFile(RENDERER_HTML)
     }
 
     // Test actively push message to the Electron-Renderer
     win.webContents.on('did-finish-load', () => {
+        const mainLog = getMainLog()
+        mainLog.info('Window did-finish-load event fired')
         win?.webContents.send(
-            'main-process-message',
+            channels.MAIN_PROCESS_MESSAGE,
             new Date().toLocaleString()
         )
+
+        // Lancer l'initialisation automatiquement depuis le main process
+        // Attendre un peu pour que la fenêtre soit complètement chargée et que les listeners soient enregistrés
+        setTimeout(async () => {
+            mainLog.info(
+                'Starting automatic initialization from main process...'
+            )
+            try {
+                // Créer un event factice pour l'initialisation
+                const fakeEvent = {
+                    sender: win?.webContents,
+                } as any
+                mainLog.debug('Calling initialization function...')
+
+                const result = await initialization(fakeEvent, false)
+                mainLog.info('Initialization completed with result:', result)
+            } catch (error) {
+                mainLog.error('Error during automatic initialization:', error)
+                if (error instanceof Error) {
+                    mainLog.error('Error stack:', error.stack)
+                }
+            }
+        }, 1000)
     })
 
     // Handle errors
     win.webContents.on(
         'did-fail-load',
         (_event, errorCode, errorDescription) => {
-            console.error('Failed to load:', errorCode, errorDescription)
+            const mainLog = getMainLog()
+            mainLog.error('Failed to load:', errorCode, errorDescription)
         }
     )
 }
 
-app.whenReady().then(() => {
-    createMenu()
-    createWindow()
+app.whenReady().then(async () => {
+    // Initialiser i18next avant de créer le menu
+    await initializeI18n()
+
+    // Charger la langue depuis le store et l'appliquer AVANT l'initialisation
+    const savedLanguage = (store.get('language') as string) || 'en'
+    await i18n.changeLanguage(savedLanguage)
+    const mainLog = getMainLog()
+    mainLog.debug('Language loaded from store and applied:', savedLanguage)
+
+    // Créer la fenêtre d'abord pour avoir mainWindow disponible
+    await createWindow()
+    // Créer le menu après que la fenêtre soit créée
+    if (win) {
+        buildMenu(app, win, i18n)
+    }
+
+    // Initialiser l'auto-update pour macOS et Windows
+    if (process.platform !== 'linux') {
+        const mainLog = getMainLog()
+        mainLog.info('Initializing auto-updater for', process.platform)
+        try {
+            const updater = Updater.getInstance()
+            // Vérifier les mises à jour au démarrage (mode silencieux)
+            updater.checkForUpdates(true)
+        } catch (error) {
+            mainLog.error('Error initializing updater:', error)
+        }
+    }
+
+    // Système de vérification Linux spécifique
+    if (process.platform === 'linux') {
+        const mainLog = getMainLog()
+        const checkLinuxUpdater = async () => {
+            try {
+                // Extraire le repository depuis package.json
+                const pkgAny = pkg as any
+                let repoPath = 'hrenaud/EcoindexApp' // Valeur par défaut
+                if (pkgAny.repository) {
+                    if (typeof pkgAny.repository === 'string') {
+                        const match = pkgAny.repository.match(
+                            /github\.com[/:]([^/]+\/[^/]+)/
+                        )
+                        if (match) {
+                            repoPath = match[1].replace(/\.git$/, '')
+                        }
+                    } else if (pkgAny.repository.url) {
+                        const match = pkgAny.repository.url.match(
+                            /github\.com[/:]([^/]+\/[^/]+)/
+                        )
+                        if (match) {
+                            repoPath = match[1].replace(/\.git$/, '')
+                        }
+                    }
+                }
+                const url = `https://api.github.com/repos/${repoPath}/releases/latest`
+                const tags = await fetch(url).then((_) => _.json())
+                const currentVersion = pkg.version
+                const lastVersion = tags['tag_name']
+                if (currentVersion !== lastVersion) {
+                    const lastVersionURL = tags['html_url']
+                    mainLog.debug(`currentVersion`, currentVersion)
+                    mainLog.debug(`lastVersion`, lastVersion)
+                    mainLog.debug(`lastVersionURL`, lastVersionURL)
+                    mainLog.debug(`Update Needed!`)
+                    const linuxUpdate = new LinuxUpdate(
+                        lastVersion,
+                        lastVersionURL
+                    )
+                    if (win) {
+                        win.webContents.send(
+                            channels.ALERT_LINUX_UPDATE,
+                            linuxUpdate
+                        )
+                    }
+                }
+            } catch (error) {
+                mainLog.error('Error checking Linux update:', error)
+            }
+        }
+        checkLinuxUpdater()
+    }
 })
 
 app.on('window-all-closed', () => {
