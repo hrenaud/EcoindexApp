@@ -28,10 +28,16 @@ EcoindexApp-2025/
 │   │       └── SendMessageToFrontLog.ts
 │   ├── renderer/                 # Renderer Process React
 │   │   ├── main_window/
-│   │   │   ├── App.tsx           # Composant principal React
+│   │   │   ├── App.tsx           # Composant principal React (refactorisé avec hooks)
 │   │   │   ├── main.tsx          # Point d'entrée React
 │   │   │   ├── index.css         # Styles globaux
-│   │   │   └── preload.d.ts      # Types TypeScript pour preload
+│   │   │   ├── preload.d.ts      # Types TypeScript pour preload
+│   │   │   └── hooks/            # Hooks personnalisés pour App.tsx
+│   │   │       ├── useAppState.ts        # Gestion de tous les états
+│   │   │       ├── useAppUtils.ts        # Fonctions utilitaires (sleep, notifications, etc.)
+│   │   │       ├── useAppHandlers.ts     # Handlers de mesures et actions
+│   │   │       ├── useIpcListeners.ts    # Listeners IPC (main ↔ renderer)
+│   │   │       └── useWorkDirEffect.ts   # Effet pour détecter les changements de workDir
 │   │   ├── components/           # Composants React (spécifiques au renderer)
 │   │   │   ├── InformationPopin.tsx  # Popin d'initialisation
 │   │   │   ├── LanguageSwitcher.tsx # Sélecteur de langue
@@ -168,7 +174,13 @@ EcoindexApp-2025/
 **Fichiers clés** :
 
 - `main.tsx` : Point d'entrée React, initialisation i18n
-- `App.tsx` : Composant principal de l'application
+- `App.tsx` : Composant principal de l'application (refactorisé, ~356 lignes)
+- `hooks/` : Hooks personnalisés pour séparer la logique métier
+    - `useAppState.ts` : Gestion centralisée de tous les états React
+    - `useAppUtils.ts` : Fonctions utilitaires mémorisées (sleep, notifications, scrolling)
+    - `useAppHandlers.ts` : Handlers pour les mesures simples et JSON
+    - `useIpcListeners.ts` : Gestion de tous les listeners IPC avec cleanup automatique
+    - `useWorkDirEffect.ts` : Effet pour détecter les changements de dossier de travail
 - `index.css` : Styles globaux Tailwind CSS avec styles personnalisés
 - `preload.d.ts` : Types TypeScript pour les APIs exposées
 

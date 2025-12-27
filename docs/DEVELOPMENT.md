@@ -454,7 +454,87 @@ Le composant `InformationPopin` affiche les messages d'initialisation dans le re
 2. **Gérer les états** : `display`, `title`, `message`, `progress`, `isAlert`, etc.
 3. **Afficher le composant** dans le JSX avec les props appropriées
 
-**Exemple d'utilisation** : Voir `src/renderer/main_window/App.tsx` pour une implémentation complète.
+**Exemple d'utilisation** : Voir `src/renderer/main_window/hooks/useIpcListeners.ts` pour une implémentation complète.
+
+### Architecture modulaire avec hooks personnalisés
+
+Le composant `App.tsx` a été refactorisé pour améliorer la maintenabilité et réduire sa taille (de 834 à 356 lignes, soit ~57% de réduction).
+
+**Structure des hooks** :
+
+1. **`useAppState.ts`** : Gère tous les états React du composant
+    - États principaux (workDir, homeDir, appReady, etc.)
+    - États pour les popins et notifications
+    - États pour les mesures (urlsList, jsonDatas, envVars, etc.)
+    - Gestion de la traduction avec `tRef` pour éviter les re-renders
+
+2. **`useAppUtils.ts`** : Fonctions utilitaires mémorisées avec `useCallback`
+    - `sleep` : Fonction d'attente avec gestion de timeout
+    - `showNotification` : Affichage de notifications système
+    - `blockScrolling` : Blocage/déblocage du scroll de la page
+    - `showHidePopinDuringProcess` : Gestion de la popin de chargement
+
+3. **`useAppHandlers.ts`** : Handlers pour les actions utilisateur
+    - `runSimpleMesures` : Lancement des mesures simples
+    - `runJsonReadAndReload` : Lecture et rechargement de la config JSON
+    - `runJsonSaveAndCollect` : Sauvegarde et lancement des mesures JSON
+    - `selectWorkingFolder` : Sélection du dossier de travail
+    - `launchInitialization` : Lancement de l'initialisation
+
+4. **`useIpcListeners.ts`** : Gestion de tous les listeners IPC
+    - Listeners pour les mises à jour Linux
+    - Listener pour les données depuis le main process
+    - Listener pour les messages de console asynchrones
+    - Listener pour les changements de langue
+    - Listener pour les messages d'initialisation
+    - Cleanup automatique de tous les listeners au démontage
+
+5. **`useWorkDirEffect.ts`** : Effet pour détecter les changements de workDir
+    - Vérifie l'existence d'un fichier JSON de configuration
+    - Recharge automatiquement la configuration si elle existe
+
+**Avantages de cette architecture** :
+
+- **Séparation des responsabilités** : Chaque hook a un rôle précis
+- **Réutilisabilité** : Les hooks peuvent être réutilisés dans d'autres composants
+- **Testabilité** : Chaque hook peut être testé indépendamment
+- **Maintenabilité** : Code plus facile à comprendre et modifier
+- **Performance** : Fonctions mémorisées pour éviter les re-renders inutiles
+
+**Exemple d'utilisation dans App.tsx** :
+
+```typescript
+function TheApp() {
+    // États et traduction
+    const state = useAppState()
+    const { t, workDir, appReady, ... } = state
+
+    // Utilitaires
+    const { sleep, showNotification, blockScrolling } = useAppUtils()
+
+    // Handlers
+    const { runSimpleMesures, selectWorkingFolder, ... } = useAppHandlers({
+        workDir,
+        ...state,
+        ...utils
+    })
+
+    // Listeners IPC (s'ajoutent automatiquement au montage)
+    useIpcListeners({
+        tRef: state.tRef,
+        ...state,
+        sleep
+    })
+
+    // Effet pour workDir
+    useWorkDirEffect({
+        workDir,
+        runJsonReadAndReload
+    })
+
+    // JSX...
+}
+```
 
 ### Scripts utilitaires et résolution des chemins
 

@@ -156,7 +156,13 @@ EcoindexApp-2025/
 │   │       └── SendMessageToFrontLog.ts
 │   ├── renderer/                # Renderer Process React
 │   │   └── main_window/
-│   │       ├── App.tsx          # Composant principal
+│   │       ├── App.tsx          # Composant principal (refactorisé avec hooks)
+│   │       ├── hooks/           # Hooks personnalisés pour App.tsx
+│   │       │   ├── useAppState.ts
+│   │       │   ├── useAppUtils.ts
+│   │       │   ├── useAppHandlers.ts
+│   │       │   ├── useIpcListeners.ts
+│   │       │   └── useWorkDirEffect.ts
 │   │       ├── main.tsx         # Point d'entrée React
 │   │       ├── index.css        # Styles globaux
 │   │       └── preload.d.ts     # Types TypeScript pour preload
