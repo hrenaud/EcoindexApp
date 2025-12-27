@@ -29,6 +29,21 @@ interface UseAppHandlersProps {
     setDisplayPopin: (display: boolean) => void
 }
 
+/**
+ * Hook personnalisé qui centralise tous les handlers d'actions utilisateur.
+ *
+ * Ce hook encapsule la logique métier pour :
+ * - Les mesures simples (analyse d'URLs individuelles)
+ * - Les mesures complexes (parcours définis dans un JSON)
+ * - La gestion du répertoire de travail
+ * - L'initialisation de l'application
+ *
+ * Tous les handlers communiquent avec le processus principal via IPC
+ * (Inter-Process Communication) pour exécuter les opérations système.
+ *
+ * @param props Propriétés nécessaires pour les handlers (états, setters, fonctions utilitaires)
+ * @returns Objet contenant tous les handlers disponibles
+ */
 export function useAppHandlers({
     workDir,
     homeDir,
@@ -49,7 +64,20 @@ export function useAppHandlers({
     setDisplayPopin,
 }: UseAppHandlersProps) {
     /**
-     * Handler, launch simple mesure with the plugin.
+     * Lance une mesure simple : analyse une ou plusieurs URLs individuellement.
+     *
+     * Flux d'exécution :
+     * 1. Vérification : demande confirmation si le répertoire de travail est le dossier par défaut
+     * 2. Détection : vérifie si un fichier JSON de configuration existe dans le répertoire
+     *    (pour suggérer une mesure complexe si approprié)
+     * 3. Confirmation : affiche un dialogue si un fichier JSON est détecté
+     * 4. Snapshot : capture l'état actuel des messages console (pour filtrer les logs de mesure)
+     * 5. Popin : affiche une popin de chargement avec le message de démarrage
+     * 6. Exécution : appelle handleSimpleMesures via IPC qui lance le script de mesure
+     * 7. Notification : affiche une notification de succès ou d'échec
+     *
+     * Les rapports générés sont accessibles dans le répertoire de travail.
+     *
      * @returns Promise<void>
      */
     const runSimpleMesures = async () => {
@@ -65,10 +93,20 @@ export function useAppHandlers({
                 return
         }
 
+        /**
+         * Détection d'un fichier JSON de configuration existant.
+         * Si un fichier ecoindex.json existe dans le répertoire de travail,
+         * cela suggère qu'une mesure complexe (parcours) serait plus appropriée.
+         * On demande confirmation à l'utilisateur avant de continuer avec une mesure simple.
+         */
         // Vérifier si un fichier JSON de configuration existe
         const isJsonConfigFileExist =
             await window.electronAPI.handleIsJsonConfigFileExist(workDir)
         if (isJsonConfigFileExist) {
+            /**
+             * Dialogue de confirmation natif (via Electron dialog.showMessageBox).
+             * L'utilisateur peut choisir d'annuler ou de continuer malgré tout.
+             */
             // Afficher une boîte de dialogue de confirmation
             const shouldContinue = await window.electronAPI.showConfirmDialog({
                 title: t('Do you really want to launch a simple measure?'),
@@ -118,7 +156,20 @@ export function useAppHandlers({
     }
 
     /**
-     * Handler, Read and Reload the Json configuration for mesures of parcours. Relaunched when workDir change.
+     * Lit et recharge la configuration JSON pour les mesures de parcours.
+     *
+     * Cette fonction est appelée automatiquement quand le répertoire de travail change
+     * (via useWorkDirEffect). Elle permet de charger automatiquement un fichier
+     * ecoindex.json existant dans le nouveau répertoire.
+     *
+     * Flux :
+     * 1. Appel IPC pour lire le fichier JSON dans le répertoire de travail
+     * 2. Si le fichier existe et est valide : met à jour l'état jsonDatas
+     * 3. Met à jour le flag isJsonFromDisk pour indiquer que les données viennent du disque
+     *
+     * Utilise useCallback pour éviter les re-créations inutiles de la fonction.
+     *
+     * @returns Promise<void>
      */
     const runJsonReadAndReload = useCallback(async () => {
         frontLog.log('Json read and reload')
@@ -142,10 +193,27 @@ export function useAppHandlers({
     }, [setJsonDatas, setIsJsonFromDisk, showNotification])
 
     /**
-     * Handler, launch measures of parcours.
-     * 1. Save Json configuration in workDir.
-     * 2. Launch measures with the plugin.
-     * @param saveAndCollect boolean
+     * Lance les mesures de parcours (complexes).
+     *
+     * Cette fonction effectue deux opérations :
+     * 1. SAUVEGARDE : Écrit la configuration JSON actuelle dans le répertoire de travail
+     *    (fichier ecoindex.json)
+     * 2. COLLECTE : Si saveAndCollect = true, lance les mesures après la sauvegarde
+     *
+     * Flux d'exécution :
+     * 1. Vérification : demande confirmation si le répertoire est le dossier par défaut
+     * 2. Snapshot : capture l'état actuel des messages console
+     * 3. Popin : affiche une popin de chargement
+     * 4. Exécution : appelle handleJsonSaveAndCollect via IPC
+     *    - Sauvegarde le fichier JSON
+     *    - Si saveAndCollect = true, lance le script de mesure
+     * 5. Notification : affiche une notification de succès ou d'échec
+     *
+     * Le fichier JSON sauvegardé contient toutes les courses (parcours) configurées
+     * par l'utilisateur dans l'interface.
+     *
+     * @param saveAndCollect Si true, lance la collecte après la sauvegarde
+     * @param envVars Variables d'environnement personnalisées à passer au script
      * @returns Promise<void>
      */
     const runJsonSaveAndCollect = async (
@@ -164,6 +232,11 @@ export function useAppHandlers({
             )
                 return
         }
+        /**
+         * Capture de l'état actuel des messages console.
+         * Cette snapshot permet de filtrer les messages dans la popin de chargement
+         * pour n'afficher que les logs générés pendant cette mesure spécifique.
+         */
         // Capturer l'état actuel des messages console pour filtrer ensuite
         setConsoleMessagesSnapshot(consoleMessages)
         await showHidePopinDuringProcess(

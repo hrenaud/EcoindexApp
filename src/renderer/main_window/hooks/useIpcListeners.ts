@@ -27,6 +27,29 @@ interface UseIpcListenersProps {
     sleep: (ms: number, clear?: boolean) => Promise<void>
 }
 
+/**
+ * Hook personnalisé qui gère tous les écouteurs IPC (Inter-Process Communication).
+ *
+ * Ce hook configure la communication bidirectionnelle entre le processus renderer
+ * (interface utilisateur) et le processus main (logique métier).
+ *
+ * Écouteurs configurés :
+ * 1. handleNewLinuxVersion : Vérification des mises à jour pour Linux
+ * 2. sendDatasToFront : Réception des données du processus main (config, résultats, etc.)
+ * 3. asynchronous-log : Réception des logs du processus main pour affichage dans la console
+ * 4. changeLanguageInFront : Changement de langue depuis le menu de l'application
+ * 5. sendInitializationMessages : Messages d'initialisation (progression, erreurs, etc.)
+ *
+ * Mécanisme de déduplication :
+ * - Les messages console sont dédupliqués pour éviter les affichages multiples
+ * - Un message identique reçu dans les 100ms est ignoré
+ *
+ * Nettoyage :
+ * - Tous les écouteurs sont correctement nettoyés au démontage du composant
+ * - Utilise des refs pour stocker les fonctions de cleanup
+ *
+ * @param props Propriétés nécessaires (setters d'état, fonctions utilitaires)
+ */
 export function useIpcListeners({
     tRef,
     setDatasFromHost,
@@ -44,12 +67,23 @@ export function useIpcListeners({
     setInformationPopinIsAlert,
     sleep,
 }: UseIpcListenersProps) {
+    /**
+     * Refs pour gérer les écouteurs IPC et éviter les fuites mémoire.
+     *
+     * handleConsoleMessageRef : Stocke la fonction de callback pour les logs console
+     * isListenerAddedRef : Flag pour éviter d'ajouter plusieurs fois le même écouteur
+     * lastMessageRef : Trace du dernier message reçu pour déduplication
+     * cleanup*Ref : Fonctions de nettoyage pour chaque type d'écouteur
+     */
     const handleConsoleMessageRef = useRef<
         | ((_event: any, message: string, ...optionalParams: any[]) => void)
         | null
     >(null)
     const isListenerAddedRef = useRef<boolean>(false)
-    // Garder une trace du dernier message pour éviter les doublons
+    /**
+     * Garde une trace du dernier message reçu pour éviter les doublons.
+     * Un message identique reçu dans les 100ms est ignoré.
+     */
     const lastMessageRef = useRef<{
         message: string
         timestamp: number
@@ -89,6 +123,17 @@ export function useIpcListeners({
                 }
             )
 
+        /**
+         * Écouteur pour les données envoyées depuis le processus main.
+         *
+         * Le processus main peut envoyer des données de différents types :
+         * - String JSON : données sérialisées (parsées automatiquement)
+         * - Object avec type : données structurées (ConfigData) avec un type spécifique
+         * - Object simple : données à fusionner directement dans l'état
+         *
+         * Les données reçues sont fusionnées dans l'état datasFromHost qui est utilisé
+         * par les composants pour afficher les informations système (Node, Puppeteer, etc.)
+         */
         // Handler sendDatasToFront
         if (cleanupSendDatasRef.current) {
             cleanupSendDatasRef.current()
@@ -126,6 +171,20 @@ export function useIpcListeners({
             }
         )
 
+        /**
+         * Écouteur pour les logs asynchrones du processus main.
+         *
+         * Ce handler capture tous les logs générés par le processus main
+         * (via _sendMessageToFrontConsole) et les affiche dans la console de l'application.
+         *
+         * Fonctionnalités :
+         * - Ajout d'un timestamp à chaque message
+         * - Déduplication : ignore les messages identiques reçus dans les 100ms
+         * - Formatage : combine le message principal avec les paramètres optionnels
+         *
+         * Les messages sont ajoutés à l'état consoleMessages qui est affiché
+         * dans le composant ConsoleApp et dans la popin de chargement.
+         */
         // Handler asynchronous-log
         // Créer la fonction une seule fois et la stocker dans le ref
         if (!handleConsoleMessageRef.current) {
@@ -162,6 +221,16 @@ export function useIpcListeners({
             }
         }
 
+        /**
+         * Gestion de l'écouteur IPC pour les logs asynchrones.
+         *
+         * IMPORTANT : On retire TOUJOURS l'écouteur existant avant d'en ajouter un nouveau.
+         * Cela évite les fuites mémoire et les écouteurs multiples qui causeraient
+         * des messages dupliqués dans la console.
+         *
+         * Le flag isListenerAddedRef empêche d'ajouter plusieurs fois le même écouteur
+         * si le useEffect se réexécute (même si cela ne devrait pas arriver avec []).
+         */
         // Nettoyer TOUS les écouteurs existants pour ce channel avant d'en ajouter un nouveau
         // Cela garantit qu'il n'y a qu'un seul écouteur actif
         if (window.ipcRenderer && handleConsoleMessageRef.current) {
@@ -184,6 +253,14 @@ export function useIpcListeners({
             }
         }
 
+        /**
+         * Écouteur pour les changements de langue depuis le menu de l'application.
+         *
+         * Quand l'utilisateur change la langue via le menu (Menu > Language),
+         * le processus main envoie un message au renderer pour mettre à jour i18next.
+         *
+         * Le changement de langue est appliqué immédiatement à toute l'interface.
+         */
         // Handler changeLanguageInFront
         if (cleanupChangeLanguageRef.current) {
             cleanupChangeLanguageRef.current()
@@ -217,6 +294,25 @@ export function useIpcListeners({
         }
         getLanguage()
 
+        /**
+         * Écouteur pour les messages d'initialisation de l'application.
+         *
+         * L'initialisation est lancée automatiquement au démarrage de l'application
+         * depuis le processus main. Elle effectue plusieurs vérifications et installations :
+         * - Vérification de Node.js
+         * - Installation/vérification du navigateur Puppeteer
+         * - Extraction de lib.asar (Windows uniquement)
+         * - Configuration des répertoires de travail
+         *
+         * Types de messages reçus :
+         * - type: 'data' : Données structurées (workDir, homeDir, appReady, etc.)
+         * - type: 'message' : Messages de progression ou d'erreur
+         *
+         * modalType :
+         * - 'started' : Affiche la popin d'initialisation
+         * - 'completed' : Cache la popin après 2 secondes
+         * - 'error' : Affiche la popin en mode alerte (erreur)
+         */
         // Handler initialization messages
         if (!window.initialisationAPI) {
             frontLog.error('window.initialisationAPI is not available!')
@@ -276,6 +372,14 @@ export function useIpcListeners({
                 }
             )
 
+        /**
+         * Fonction de nettoyage exécutée au démontage du composant.
+         *
+         * IMPORTANT : Tous les écouteurs IPC doivent être correctement nettoyés
+         * pour éviter les fuites mémoire et les comportements inattendus.
+         *
+         * Chaque écouteur a sa propre fonction de cleanup qui est appelée ici.
+         */
         // Cleanup
         return () => {
             if (cleanupLinuxVersionRef.current) {
