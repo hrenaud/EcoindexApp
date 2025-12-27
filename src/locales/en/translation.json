@@ -220,5 +220,11 @@
     "add": {
       "to": "Add an item to"
     }
-  }
+  },
+  "loading file content...": "Loading file content...",
+  "Config file founded 👀": "Config file found 👀",
+  "🔄 JSON reload": "🔄 JSON reload",
+  "Json file read and reloaded.": "Json file read and reloaded.",
+  "🚫 JSON reload": "🚫 JSON reload error",
+  "Json file not read and reloaded. {{error}}": "Json file not read and reloaded. {{error}}"
 }

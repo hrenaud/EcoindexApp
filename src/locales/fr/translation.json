@@ -220,5 +220,11 @@
     "add": {
       "to": "Ajouter un élément à"
     }
-  }
+  },
+  "loading file content...": "Chargement du contenu du fichier...",
+  "Config file founded 👀": "Fichier de configuration trouvé 👀",
+  "🔄 JSON reload": "🔄 Rechargement JSON",
+  "Json file read and reloaded.": "Fichier JSON lu et rechargé.",
+  "🚫 JSON reload": "🚫 Erreur de rechargement JSON",
+  "Json file not read and reloaded. {{error}}": "Le fichier JSON n'a pas pu être lu et rechargé. {{error}}"
 }
