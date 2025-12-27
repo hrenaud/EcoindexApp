@@ -218,28 +218,27 @@ Les Fuses Electron sont configurées dans `forge.config.js` pour sécuriser l'ap
 
 ## Workflows GitHub Actions
 
-### Changeset
+> **📖 Documentation complète** : Voir [RELEASE.md](./RELEASE.md) pour une documentation détaillée du processus de release, des changesets, et des workflows GitHub Actions.
 
-**Fichier** : `.github/workflows/changeset.yml`
+### Vue d'ensemble
 
-- **Déclencheur** : Push vers `main`
-- **Action** : Détecte les changesets et crée une PR de version
+Le processus de release utilise deux workflows GitHub Actions :
 
-### Release
-
-**Fichier** : `.github/workflows/release.yml`
-
-- **Déclencheur** : Push vers `main` (uniquement si le commit contient "chore: version packages")
-- **Action** : Build l'application pour toutes les plateformes et crée une Release GitHub
+1. **`changeset.yml`** : Détecte les changesets et crée une PR de version
+2. **`release.yml`** : Build l'application pour toutes les plateformes et crée une Release GitHub
 
 ### Secrets GitHub requis
 
-Pour les workflows GitHub Actions :
+Pour les workflows GitHub Actions (macOS uniquement) :
 
 - `APPLE_IDENTITY` : Identité de signature macOS
 - `APPLE_ID` : Apple ID
 - `APPLE_APP_SPECIFIC_PASSWORD` : Mot de passe spécifique
 - `APPLE_TEAM_ID` : Team ID
+- `APPLE_APPLICATION_CERT` : Certificat `.p12` encodé en base64
+- `APPLE_APPLICATION_CERT_PASSWORD` : Mot de passe du certificat
+
+Pour plus de détails, voir [RELEASE.md](./RELEASE.md).
 
 ## Dépannage
 
