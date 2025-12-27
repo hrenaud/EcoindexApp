@@ -39,6 +39,13 @@ window.electronAPI.displaySplashScreen(
     callback: (visibility: boolean) => void
 ): () => void  // Retourne une fonction pour se désabonner
 
+// Afficher une boîte de dialogue de confirmation native
+window.electronAPI.showConfirmDialog(options: {
+    title: string
+    message: string
+    buttons: string[]
+}): Promise<boolean>  // Retourne true si l'utilisateur clique sur le dernier bouton (généralement "Continuer")
+
 // Type LinuxUpdate
 interface LinuxUpdate {
     readonly latestReleaseVersion: string  // Version disponible (ex: "v0.1.16")
@@ -280,21 +287,82 @@ Récupère une valeur depuis electron-store.
 
 Supprime une clé de electron-store.
 
+### Mesures
+
+#### `simple-mesures`
+
+**Direction** : Renderer → Main  
+**Type** : `ipcMain.handle`  
+**Paramètres** :
+
+- `urlsList: ISimpleUrlInput[]` : Liste des URLs à analyser
+- `advConfig: IAdvancedMesureData` : Configuration avancée
+- `envVars: IKeyValue | null` : Variables d'environnement optionnelles
+
+**Retour** : `Promise<void>`
+
+Lance une mesure simple (analyse d'une ou plusieurs URLs). Les messages de progression sont envoyés via le canal `asynchronous-log`.
+
+#### `save-json-file`
+
+**Direction** : Renderer → Main  
+**Type** : `ipcMain.handle`  
+**Paramètres** :
+
+- `jsonData: IJsonMesureData` : Données JSON à sauvegarder
+- `workDir: string` : Dossier de travail où sauvegarder le fichier
+
+**Retour** : `Promise<void>`
+
+Sauvegarde un fichier JSON de configuration de mesure complexe.
+
+#### `read-reload-json-file`
+
+**Direction** : Renderer → Main  
+**Type** : `ipcMain.handle`  
+**Paramètres** :
+
+- `workDir: string` : Dossier de travail où chercher le fichier JSON
+
+**Retour** : `Promise<IJsonMesureData | null>`
+
+Lit et recharge un fichier JSON de configuration depuis le dossier de travail. Retourne `null` si le fichier n'existe pas.
+
+#### `is-json-config-file-exist`
+
+**Direction** : Renderer → Main  
+**Type** : `ipcMain.handle`  
+**Paramètres** :
+
+- `workDir: string` : Dossier de travail où chercher le fichier JSON
+
+**Retour** : `Promise<boolean>`
+
+Vérifie si un fichier de configuration JSON existe dans le dossier de travail.
+
+#### `show-confirm-dialog`
+
+**Direction** : Renderer → Main  
+**Type** : `ipcMain.handle`  
+**Paramètres** :
+
+- `options: { title: string, message: string, buttons: string[] }` : Options de la boîte de dialogue
+
+**Retour** : `Promise<boolean>`
+
+Affiche une boîte de dialogue de confirmation native (OS). Retourne `true` si l'utilisateur clique sur le dernier bouton (généralement "Continuer"), `false` sinon.
+
+**Utilisation** : Utilisé pour demander confirmation avant de lancer une mesure simple si un fichier JSON de configuration est détecté.
+
 ### Canaux prévus (non implémentés)
 
 Les canaux suivants sont définis dans `src/shared/constants.ts` mais ne sont pas encore implémentés :
 
-- `simple-mesures` : Mesures simples
-- `json-mesures` : Mesures depuis fichier JSON
-- `save-json-file` : Sauvegarder un fichier JSON
-- `read-reload-json-file` : Lire un fichier JSON
 - `get-workdir` : Récupérer le dossier de travail
 - `get-homedir` : Récupérer le dossier home
 - `is-lighthouse-ecoindex-installed` : Vérifier l'installation du plugin
 - `install-ecoindex-plugin` : Installer le plugin
 - `open-report` : Ouvrir un rapport
-
-**Note** : Le canal `display-splash-screen` est maintenant implémenté (voir section ci-dessus).
 
 ## Types TypeScript
 

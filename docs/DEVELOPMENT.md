@@ -576,7 +576,7 @@ Le composant `InformationPopin` affiche les messages d'initialisation dans le re
 
 ### Architecture modulaire avec hooks personnalisés
 
-Le composant `App.tsx` a été refactorisé pour améliorer la maintenabilité et réduire sa taille (de 834 à 356 lignes, soit ~57% de réduction).
+Le composant `App.tsx` a été refactorisé pour améliorer la maintenabilité et réduire sa taille (de 834 à 404 lignes, soit ~52% de réduction).
 
 **Structure des hooks** :
 
