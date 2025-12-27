@@ -341,6 +341,11 @@ Toutes les messages de mise à jour sont traduits dans `src/locales/{fr,en}/tran
 D'après les canaux IPC et interfaces définis, les fonctionnalités suivantes sont prévues :
 
 1. **Mesures simples** : Analyse d'une URL unique
+    - **Confirmation si fichier JSON détecté** : Si un fichier de configuration JSON (`input-file.json`) est détecté dans le dossier de travail, une boîte de dialogue de confirmation s'affiche avant de lancer la mesure simple. Cette fonctionnalité permet d'éviter de lancer une mesure simple quand une configuration de mesure complexe existe déjà dans le dossier de travail.
+        - Titre : "Voulez-vous vraiment lancer une mesure simple ?"
+        - Message : "Un fichier de configuration de mesure complexe a été détecté dans le dossier sélectionné, il semble qu'une mesure de parcours (complexe) soit plus adaptée."
+        - Boutons : [Annuler] [Continuer]
+        - Si l'utilisateur clique sur "Annuler", la mesure simple n'est pas lancée.
 2. **Mesures depuis JSON** : Analyse de plusieurs URLs depuis un fichier de configuration
 3. **Gestion des parcours** : Support des "courses" (parcours d'analyse)
 4. **Installation de plugins** : Installation/mise à jour des plugins Lighthouse Ecoindex
