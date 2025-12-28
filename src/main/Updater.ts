@@ -102,7 +102,6 @@ class Updater {
             // Utiliser la version depuis package.json ou app.getVersion()
             const currentVersion = version || pkg.version || app.getVersion()
 
-            const feedUrl = `https://update.electronjs.org/${repoPath}/${process.platform}-${_arch}/${currentVersion}`
             const userAgent = format(
                 '%s/%s (%s: %s)',
                 pkg.productName || pkg.name,
@@ -111,16 +110,20 @@ class Updater {
                 _arch
             )
 
-            updaterLog.log('feedUrl', feedUrl)
+            // Configurer l'URL du feed pour update.electronjs.org
+            // update.electronjs.org est un service qui convertit les releases GitHub
+            // en format compatible avec electron-updater
+            // L'URL doit pointer vers la base (sans version), update.electronjs.org gère les versions automatiquement
+            const baseUrl = `https://update.electronjs.org/${repoPath}/${process.platform}-${_arch}`
+
+            updaterLog.log('baseUrl (feed)', baseUrl)
             updaterLog.log('userAgent', userAgent)
             updaterLog.log('repoPath (from package.json)', repoPath)
             updaterLog.log('version (from package.json)', currentVersion)
 
-            // Configurer l'URL du feed pour update.electronjs.org
-            // Cela évite que electron-updater cherche app-update.yml
             autoUpdater.setFeedURL({
                 provider: 'generic',
-                url: `https://update.electronjs.org/${repoPath}/${process.platform}-${_arch}`,
+                url: baseUrl,
             })
 
             // Configurer le user agent pour les requêtes HTTP
