@@ -205,13 +205,13 @@ L'application dispose de deux systèmes de mise à jour automatique selon la pla
 
 **Implémentation** : `src/main/Updater.ts`
 
-Utilise `electron-updater` pour vérifier et installer automatiquement les mises à jour.
+Utilise l'auto-updater natif d'Electron (`electron.autoUpdater`) avec `update.electronjs.org` pour vérifier et installer automatiquement les mises à jour.
 
 #### Fonctionnalités
 
 - **Vérification automatique** : Vérifie les mises à jour toutes les heures
 - **Vérification au démarrage** : Vérifie les mises à jour au lancement de l'application (mode silencieux)
-- **Source de mises à jour** : `update.electronjs.org` pour les releases GitHub
+- **Source de mises à jour** : `update.electronjs.org` - service gratuit qui convertit les releases GitHub en format compatible avec l'auto-updater natif
 - **Téléchargement en arrière-plan** : Les mises à jour sont téléchargées automatiquement
 - **Notifications utilisateur** :
     - Message informatif lors de la disponibilité d'une mise à jour
@@ -220,9 +220,10 @@ Utilise `electron-updater` pour vérifier et installer automatiquement les mises
 
 #### Configuration
 
-- **Mode production uniquement** : Désactivé en mode développement (`NODE_ENV !== 'production'`)
-- **URL de feed** : `https://update.electronjs.org/cnumr/EcoindexApp/{platform}-{arch}/{version}`
+- **Mode production uniquement** : Désactivé en mode développement (utilise `app.isPackaged` pour détecter la production)
+- **URL de feed** : Construite dynamiquement depuis `package.json` : `https://update.electronjs.org/{owner}/{repo}/{platform}-{arch}/{version}`
 - **User-Agent** : Format `{productName}/{version} ({platform}: {arch})`
+- **Repository** : Extrait automatiquement depuis `package.json.repository` (format GitHub : `owner/repo`)
 
 #### Événements gérés
 
@@ -249,7 +250,7 @@ updater.checkForUpdates(false)
 
 **Implémentation** : `src/main/main.ts` (fonction `checkLinuxUpdater`)
 
-Linux utilise un système différent car `electron-updater` ne supporte pas nativement les packages DEB/RPM.
+Linux utilise un système différent car l'auto-updater natif d'Electron ne supporte pas nativement les packages DEB/RPM.
 
 #### Fonctionnalités
 
@@ -307,8 +308,9 @@ Toutes les messages de mise à jour sont traduits dans `src/locales/{fr,en}/tran
 **macOS/Windows** :
 
 - Nécessite une configuration correcte de `update.electronjs.org`
-- Les tags GitHub doivent suivre la convention SemVer
-- Note : Actuellement, les tags `electron-vX.Y.x` ne sont pas compatibles SemVer
+- Les tags GitHub doivent suivre la convention SemVer **sans préfixe "v"** (ex: `0.1.16` et non `v0.1.16`)
+- Le repository doit être public sur GitHub
+- Les releases doivent être publiées sur GitHub Releases avec les artefacts (DMG, ZIP, EXE)
 
 **Linux** :
 

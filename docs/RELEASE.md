@@ -269,7 +269,7 @@ Se déclenche après le job `build` si `should-release == 'true'`.
 4. **Download all artifacts** : Téléchargement de tous les artefacts des builds
 5. **Generate Release.txt** : Création d'un fichier avec le SHA du commit
 6. **Create GitHub Release** : Création de la release GitHub avec :
-    - Tag : `{version}` (ex: `0.1.16`) - Format SemVer sans préfixe pour compatibilité avec electron-updater
+    - Tag : `{version}` (ex: `0.1.16`) - Format SemVer sans préfixe pour compatibilité avec l'auto-updater natif d'Electron et `update.electronjs.org`
     - Titre : `Release Electron-app {version}`
     - Fichiers : Tous les artefacts (`.deb`, `.dmg`, `.exe`, `.rpm`, `.zip`)
     - Release notes : Générées automatiquement depuis les changesets
@@ -359,14 +359,14 @@ git push
     - Upload les artefacts
 5. Le job `release` :
     - Télécharge tous les artefacts
-    - Crée la release GitHub avec le tag `{version}` (sans préfixe "v" pour compatibilité SemVer avec electron-updater)
+    - Crée la release GitHub avec le tag `{version}` (sans préfixe "v" pour compatibilité SemVer avec l'auto-updater natif d'Electron et `update.electronjs.org`)
     - Attache tous les fichiers d'installation
 
 ### 5. Résultat
 
 Une release GitHub est créée avec :
 
-- **Tag** : `0.1.16` (exemple, sans préfixe "v" pour compatibilité SemVer avec electron-updater)
+- **Tag** : `0.1.16` (exemple, sans préfixe "v" pour compatibilité SemVer avec l'auto-updater natif d'Electron et `update.electronjs.org`)
 - **Titre** : `Release Electron-app 0.1.16`
 - **Release notes** : Générées depuis les changesets
 - **Fichiers** :
