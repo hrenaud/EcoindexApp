@@ -29,7 +29,10 @@ import pkg from '../../package.json'
 
 const updaterLog = log.scope('main/Updater')
 
-let IS_PROD: boolean = process.env.NODE_ENV === 'production'
+// Utiliser app.isPackaged pour détecter si l'application est en production
+// app.isPackaged est true quand l'application est packagée (build de production)
+// et false en mode développement
+let IS_PROD: boolean = app.isPackaged
 const FORCE_FOR_DEBUG: boolean = false
 
 /**
