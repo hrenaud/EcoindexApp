@@ -245,7 +245,7 @@ class LinuxUpdate {
 
 Notification envoyée uniquement sur Linux lorsqu'une nouvelle version est disponible sur GitHub. L'utilisateur doit télécharger et installer manuellement la nouvelle version.
 
-**Note** : Ce canal n'est utilisé que sur Linux. macOS et Windows utilisent `electron-updater` pour les mises à jour automatiques.
+**Note** : Ce canal n'est utilisé que sur Linux. macOS et Windows utilisent l'auto-updater natif d'Electron (`electron.autoUpdater`) avec `update.electronjs.org` pour les mises à jour automatiques.
 
 ### Store
 
