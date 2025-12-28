@@ -110,20 +110,24 @@ class Updater {
                 _arch
             )
 
-            // Configurer l'URL du feed pour update.electronjs.org
-            // update.electronjs.org est un service qui convertit les releases GitHub
-            // en format compatible avec electron-updater
-            // L'URL doit pointer vers la base (sans version), update.electronjs.org gère les versions automatiquement
-            const baseUrl = `https://update.electronjs.org/${repoPath}/${process.platform}-${_arch}`
+            // Configurer le provider GitHub pour electron-updater
+            // electron-updater utilise directement l'API GitHub pour récupérer les releases
+            // et les fichiers latest-mac.yml générés par electron-builder
+            // Note: update.electronjs.org est conçu pour l'auto-updater natif d'Electron,
+            // pas pour electron-updater qui nécessite les fichiers YAML générés par electron-builder
+            const [owner, repo] = repoPath.split('/')
 
-            updaterLog.log('baseUrl (feed)', baseUrl)
+            updaterLog.log('provider', 'github')
+            updaterLog.log('owner', owner)
+            updaterLog.log('repo', repo)
             updaterLog.log('userAgent', userAgent)
             updaterLog.log('repoPath (from package.json)', repoPath)
             updaterLog.log('version (from package.json)', currentVersion)
 
             autoUpdater.setFeedURL({
-                provider: 'generic',
-                url: baseUrl,
+                provider: 'github',
+                owner: owner,
+                repo: repo,
             })
 
             // Configurer le user agent pour les requêtes HTTP
