@@ -116,10 +116,18 @@ class Updater {
             updaterLog.log('repoPath (from package.json)', repoPath)
             updaterLog.log('version (from package.json)', currentVersion)
 
-            // electron-updater utilise updateConfigPath ou la configuration par défaut
-            // Pour update.electronjs.org, on configure via autoUpdater.updateConfigPath
-            // Note: setFeedURL n'est pas disponible dans electron-updater moderne
-            // La configuration se fait généralement via package.json ou forge.config.js
+            // Configurer l'URL du feed pour update.electronjs.org
+            // Cela évite que electron-updater cherche app-update.yml
+            autoUpdater.setFeedURL({
+                provider: 'generic',
+                url: `https://update.electronjs.org/${repoPath}/${process.platform}-${_arch}`,
+            })
+
+            // Configurer le user agent pour les requêtes HTTP
+            autoUpdater.requestHeaders = {
+                'User-Agent': userAgent,
+            }
+
             this.create()
         } else {
             updaterLog.debug('Auto-Updater disabled (dev-mode)')
