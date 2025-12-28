@@ -48,7 +48,7 @@ window.electronAPI.showConfirmDialog(options: {
 
 // Type LinuxUpdate
 interface LinuxUpdate {
-    readonly latestReleaseVersion: string  // Version disponible (ex: "v0.1.16")
+    readonly latestReleaseVersion: string  // Version disponible (ex: "0.1.16", sans préfixe "v")
     readonly latestReleaseURL: string      // URL de la release GitHub
 }
 ```
