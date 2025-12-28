@@ -1,5 +1,31 @@
 # ecoindex-app
 
+## 0.2.7
+
+### Patch Changes
+
+- 54c570f: ## Correction de la détection de production pour l'auto-update
+    - **Correction de la détection de production** : Remplacement de `process.env.NODE_ENV === 'production'` par `app.isPackaged` pour déterminer si l'application est en production. `NODE_ENV` n'est pas défini dans les builds GitHub Actions, ce qui désactivait l'auto-update même en production. `app.isPackaged` est la méthode recommandée en Electron pour détecter si l'application est packagée (build de production).
+
+## 0.2.6
+
+### Patch Changes
+
+- 2f411af: ## Correction du runner macOS Intel
+    - **Changement du runner macOS Intel** : Utilisation de `macos-15-intel` au lieu de `macos-15` pour le build macOS Intel. Cela résout le problème de fichiers en double lors de la création de la release GitHub, car les fichiers générés par les builds Intel et ARM avaient des noms similaires et étaient confondus lors de la déduplication.
+
+    **Référence** : [GitHub Actions Runner Images - macOS 15](https://github.com/actions/runner-images/blob/macos-15-arm64/20251215.0075/images/macos/macos-15-Readme.md)
+
+## 0.2.5
+
+### Patch Changes
+
+- f3b3376: ## Corrections du workflow GitHub Actions
+    - **Correction du pattern de fichiers** : Suppression du pattern `artifacts/**/*Setup.exe` (avec S majuscule) qui ne correspondait à aucun fichier et générait un warning. Le fichier Windows est `setup.exe` (minuscule).
+    - **Ajout de `fail_on_unmatched_files: false`** : Permet au workflow de continuer même si certains patterns ne correspondent à aucun fichier, évitant les erreurs lors de la création de release GitHub.
+    - **Ajout de `overwrite_files: false`** : Empêche l'action de tenter de mettre à jour des assets existants, ce qui causait l'erreur "Not Found" lors de l'upload de fichiers dupliqués. Le paramètre `overwrite` n'existe pas dans cette action, c'est `overwrite_files` qui doit être utilisé.
+    - **Ajout d'une étape de déduplication** : Ajout d'une étape "Remove duplicate files" qui supprime les fichiers en double avant l'upload. Les patterns glob trouvaient les mêmes fichiers dans plusieurs dossiers d'artifacts (ex: `macos-intel-artifacts` et `macos-arm-artifacts`), causant des tentatives d'upload multiples du même fichier et l'erreur "Not Found".
+
 ## 0.2.4
 
 ### Patch Changes
