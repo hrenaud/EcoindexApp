@@ -18,8 +18,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-import { app, dialog } from 'electron'
-import { autoUpdater, type UpdateDownloadedEvent } from 'electron-updater'
+import { app, autoUpdater, dialog } from 'electron'
 
 import { format } from 'util'
 import i18n from '../configs/i18next.config'
@@ -110,30 +109,21 @@ class Updater {
                 _arch
             )
 
-            // Configurer le provider GitHub pour electron-updater
-            // electron-updater utilise directement l'API GitHub pour récupérer les releases
-            // et les fichiers latest-mac.yml générés par electron-builder
-            // Note: update.electronjs.org est conçu pour l'auto-updater natif d'Electron,
-            // pas pour electron-updater qui nécessite les fichiers YAML générés par electron-builder
-            const [owner, repo] = repoPath.split('/')
+            // Configurer l'URL du feed pour update.electronjs.org
+            // update.electronjs.org est un service gratuit qui convertit les releases GitHub
+            // en format compatible avec l'auto-updater natif d'Electron
+            // Format: https://update.electronjs.org/{owner}/{repo}/{platform}-{arch}/{version}
+            const feedUrl = `https://update.electronjs.org/${repoPath}/${process.platform}-${_arch}/${currentVersion}`
 
-            updaterLog.log('provider', 'github')
-            updaterLog.log('owner', owner)
-            updaterLog.log('repo', repo)
+            updaterLog.log('feedUrl', feedUrl)
             updaterLog.log('userAgent', userAgent)
             updaterLog.log('repoPath (from package.json)', repoPath)
             updaterLog.log('version (from package.json)', currentVersion)
 
             autoUpdater.setFeedURL({
-                provider: 'github',
-                owner: owner,
-                repo: repo,
+                url: feedUrl,
+                headers: { 'User-Agent': userAgent },
             })
-
-            // Configurer le user agent pour les requêtes HTTP
-            autoUpdater.requestHeaders = {
-                'User-Agent': userAgent,
-            }
 
             this.create()
         } else {
@@ -170,7 +160,11 @@ class Updater {
             'update-not-available',
             this.onUpdateNotAvailable.bind(this)
         )
-        autoUpdater.on('update-downloaded', this.onUpdateDownloaded.bind(this))
+        autoUpdater.on(
+            'update-downloaded',
+
+            this.onUpdateDownloaded.bind(this) as any
+        )
 
         setInterval(() => this.checkForUpdates(), 60 * 60 * 1000)
     }
@@ -221,26 +215,25 @@ class Updater {
     }
 
     /**
-     * @param {UpdateDownloadedEvent} event
+     * @param {Event} _
+     * @param {string} releaseNotes
+     * @param {string} releaseName
+     * @param {Date} _releaseDate
+     * @param {string} _updateURL
      */
-    protected async onUpdateDownloaded(
-        event: UpdateDownloadedEvent
-    ): Promise<void> {
+    protected onUpdateDownloaded(
+        _: Event,
+        releaseNotes: string,
+        releaseName: string,
+        _releaseDate: Date,
+        _updateURL: string
+    ): void {
         updaterLog.log('update-downloaded', {
-            releaseName: event.releaseName,
-            releaseDate: event.releaseDate,
-            version: event.version,
-            releaseNotes: event.releaseNotes,
+            releaseName,
+            releaseDate: _releaseDate,
+            updateURL: _updateURL,
+            releaseNotes,
         })
-
-        // releaseNotes peut être string, array ou null
-        const releaseNotes =
-            typeof event.releaseNotes === 'string'
-                ? event.releaseNotes
-                : Array.isArray(event.releaseNotes)
-                  ? event.releaseNotes.map((n) => n.note || '').join('\n')
-                  : ''
-        const releaseName = event.releaseName || event.version || ''
 
         const options = {
             type: 'info' as const,
@@ -249,10 +242,14 @@ class Updater {
             message: process.platform === 'win32' ? releaseNotes : releaseName,
             detail: i18n.t('update.restartToApply'),
         }
-        const response = await dialog.showMessageBox(options)
-        if (response.response === 0) {
-            autoUpdater.quitAndInstall()
-        }
+
+        // dialog.showMessageBox avec callback pour compatibilité avec l'auto-updater natif
+
+        ;(dialog.showMessageBox as any)(options, (response: number) => {
+            if (response === 0) {
+                autoUpdater.quitAndInstall()
+            }
+        })
     }
 
     /**

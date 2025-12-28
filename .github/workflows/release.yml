@@ -412,13 +412,6 @@ jobs:
             - name: Generate Release.txt
               run: echo ${{ github.sha }} > Release.txt
 
-            - name: Generate update files (latest-mac.yml, latest.yml, latest-linux.yml)
-              run: |
-                  node scripts/generate-update-files.js ${{ needs.check-release.outputs.version }} artifacts
-              env:
-                  VERSION: ${{ needs.check-release.outputs.version }}
-                  ARTIFACTS_DIR: artifacts
-
             - name: Create GitHub Release
               uses: softprops/action-gh-release@v2
               with:
@@ -431,9 +424,6 @@ jobs:
                       artifacts/**/*setup.exe
                       artifacts/**/*.rpm
                       artifacts/**/*.zip
-                      artifacts/latest-mac.yml
-                      artifacts/latest.yml
-                      artifacts/latest-linux.yml
                   generate_release_notes: true
                   fail_on_unmatched_files: false
                   overwrite_files: false
