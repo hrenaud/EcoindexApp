@@ -384,6 +384,31 @@ jobs:
               with:
                   path: artifacts
 
+            - name: Remove duplicate files
+              run: |
+                  echo "Recherche des fichiers en double..."
+                  # Créer un dossier temporaire pour les fichiers uniques
+                  mkdir -p artifacts-unique
+                  
+                  # Trouver tous les fichiers et les copier dans artifacts-unique en évitant les doublons
+                  # Utiliser le nom de fichier comme clé unique
+                  find artifacts -type f \( -name "*.deb" -o -name "*.dmg" -o -name "*.exe" -o -name "*.rpm" -o -name "*.zip" \) | while read file; do
+                    filename=$(basename "$file")
+                    if [ ! -f "artifacts-unique/$filename" ]; then
+                      echo "Copie de $file vers artifacts-unique/$filename"
+                      cp "$file" "artifacts-unique/$filename"
+                    else
+                      echo "Fichier $filename déjà copié, ignoré: $file"
+                    fi
+                  done
+                  
+                  # Remplacer artifacts par artifacts-unique
+                  rm -rf artifacts
+                  mv artifacts-unique artifacts
+                  
+                  echo "Fichiers uniques dans artifacts:"
+                  find artifacts -type f | sort
+
             - name: Generate Release.txt
               run: echo ${{ github.sha }} > Release.txt
 
