@@ -117,10 +117,13 @@ class Updater {
             updaterLog.log('version (from package.json)', currentVersion)
 
             // Configurer l'URL du feed pour update.electronjs.org
-            // Cela évite que electron-updater cherche app-update.yml
+            // update.electronjs.org fonctionne avec le provider 'github'
+            // Il détecte automatiquement les releases GitHub et les convertit en format compatible
+            const [owner, repo] = repoPath.split('/')
             autoUpdater.setFeedURL({
-                provider: 'generic',
-                url: `https://update.electronjs.org/${repoPath}/${process.platform}-${_arch}`,
+                provider: 'github',
+                owner: owner,
+                repo: repo,
             })
 
             // Configurer le user agent pour les requêtes HTTP
