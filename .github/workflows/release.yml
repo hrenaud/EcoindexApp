@@ -416,7 +416,7 @@ jobs:
               uses: softprops/action-gh-release@v2
               with:
                   name: Release Electron-app ${{ needs.check-release.outputs.version }}
-                  tag_name: v${{ needs.check-release.outputs.version }}
+                  tag_name: ${{ needs.check-release.outputs.version }}
                   files: |
                       Release.txt
                       artifacts/**/*.deb
