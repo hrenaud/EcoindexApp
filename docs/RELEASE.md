@@ -225,9 +225,11 @@ matrix:
     os:
         - { name: 'linux', image: 'ubuntu-latest' }
         - { name: 'windows', image: 'windows-latest' }
-        - { name: 'macos-intel', image: 'macos-15' }
+        - { name: 'macos-intel', image: 'macos-15-intel' }
         - { name: 'macos-arm', image: 'macos-14' }
 ```
+
+**Note importante** : Le runner `macos-15-intel` est utilisé pour macOS Intel au lieu de `macos-15` pour éviter les conflits de noms de fichiers lors de la création de la release. Les deux runners (`macos-15-intel` et `macos-14` pour ARM) génèrent des fichiers avec des noms similaires, et l'utilisation de `macos-15` pour Intel causait des conflits lors de la déduplication des fichiers.
 
 **Étapes pour chaque plateforme** :
 
@@ -347,7 +349,7 @@ git push
 3. Lance les builds sur les 4 plateformes en parallèle :
     - Linux (ubuntu-latest)
     - Windows (windows-latest)
-    - macOS Intel (macos-15)
+    - macOS Intel (macos-15-intel)
     - macOS ARM (macos-14)
 4. Chaque build :
     - Installe les dépendances
